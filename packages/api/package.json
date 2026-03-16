@@ -1,0 +1,33 @@
+{
+  "name": "@jumpinboat/api",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npx tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "lint": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/migrate.ts",
+    "db:seed": "tsx src/db/seed.ts"
+  },
+  "dependencies": {
+    "@jumpinboat/shared": "*",
+    "@effect/platform": "^0.94.5",
+    "@effect/platform-node": "^0.104.1",
+    "argon2": "^0.44.0",
+    "drizzle-orm": "^0.44.5",
+    "effect": "^3.19.19",
+    "find-my-way-ts": "^0.1.6",
+    "jose": "^6.1.0",
+    "msgpackr": "^1.11.4",
+    "multipasta": "^0.2.7",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.15.5",
+    "drizzle-kit": "^0.31.4",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
