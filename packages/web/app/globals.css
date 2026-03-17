@@ -3,7 +3,12 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    background: #f8fafc;
+  }
+
   body {
-    @apply font-sans;
+    font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    color: #0f172a;
   }
 }

@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "JumpInBoat",
+    "slug": "jumpinboat-mobile",
+    "scheme": "jumpinboat",
+    "plugins": [
+      "expo-router"
+    ]
+  }
+}
