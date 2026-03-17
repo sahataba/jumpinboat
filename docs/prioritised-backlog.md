@@ -7,10 +7,10 @@ This backlog turns the MVP spec into buildable slices, ordered by dependency and
 - Implement user model and auth flows:
   - Email/password signup & signin.
   - JWT-based session handling.
-  - Basic role handling: customer, owner, both, admin.
+  - Basic role handling: owner and admin, with booking available to any signed-in user.
 - Wire minimal UI:
-  - Web: sign in/sign up screens, route guards for dashboard and “My bookings”.
-  - Mobile: sign in/sign up flow and protected stacks for owner/customer areas.
+  - Web: sign in/sign up screens, route guards for owner dashboard and “My bookings”.
+  - Mobile: sign in/sign up flow and protected stacks for owner and booking areas.
 
 ## Slice 2 – Listings (owner-side)
 
@@ -63,4 +63,3 @@ This backlog turns the MVP spec into buildable slices, ordered by dependency and
   - Email + WhatsApp (or initial subset) for booking events.
 - Translations:
   - Auto-translation of listing content (EN/HR) in owner flows.
-

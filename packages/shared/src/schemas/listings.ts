@@ -34,6 +34,9 @@ export const Money = S.Struct({
 });
 export type Money = S.Schema.Type<typeof Money>;
 
+export const DepartureStatus = S.Literal("scheduled", "cancelled");
+export type DepartureStatus = S.Schema.Type<typeof DepartureStatus>;
+
 export const BoatTranslation = S.Struct({
   locale: Locale,
   name: S.String,
@@ -60,6 +63,21 @@ export const RoutePricing = S.Struct({
 });
 export type RoutePricing = S.Schema.Type<typeof RoutePricing>;
 
+export const RouteStopInput = S.Struct({
+  orderIndex: S.Number,
+  coordinate: Coordinate,
+  perStopPrice: S.optional(Money),
+});
+export type RouteStopInput = S.Schema.Type<typeof RouteStopInput>;
+
+export const RouteInput = S.Struct({
+  start: Coordinate,
+  end: Coordinate,
+  stops: S.Array(RouteStopInput),
+  pricing: RoutePricing,
+});
+export type RouteInput = S.Schema.Type<typeof RouteInput>;
+
 export const Route = S.Struct({
   id: RouteId,
   boatId: BoatId,
@@ -80,6 +98,44 @@ export const CapacityInfo = S.Struct({
 });
 export type CapacityInfo = S.Schema.Type<typeof CapacityInfo>;
 
+export const BoatDeparture = S.Struct({
+  id: DepartureId,
+  routeId: RouteId,
+  departureTimeUtc: S.String,
+  maxPassengersOverride: S.optional(S.Number),
+  maxCargoWeightKgOverride: S.optional(S.Number),
+  status: DepartureStatus,
+});
+export type BoatDeparture = S.Schema.Type<typeof BoatDeparture>;
+
+export const BoatDepartureInput = S.Struct({
+  departureTimeUtc: S.String,
+  maxPassengersOverride: S.optional(S.Number),
+  maxCargoWeightKgOverride: S.optional(S.Number),
+  status: S.optional(DepartureStatus),
+});
+export type BoatDepartureInput = S.Schema.Type<typeof BoatDepartureInput>;
+
+export const BoatListingPayload = S.Struct({
+  slug: S.optional(S.String),
+  translations: S.Array(BoatTranslation),
+  route: RouteInput,
+  capacity: CapacityInfo,
+  departures: S.Array(BoatDepartureInput),
+  photos: S.Array(S.String),
+  isActive: S.optional(S.Boolean),
+});
+export type BoatListingPayload = S.Schema.Type<typeof BoatListingPayload>;
+
+export const CreateBoatListingRequest = BoatListingPayload;
+export type CreateBoatListingRequest = S.Schema.Type<typeof CreateBoatListingRequest>;
+
+export const UpdateBoatListingRequest = S.Struct({
+  boatId: BoatId,
+  listing: BoatListingPayload,
+});
+export type UpdateBoatListingRequest = S.Schema.Type<typeof UpdateBoatListingRequest>;
+
 export const BoatListingSummary = S.Struct({
   id: BoatId,
   slug: S.optional(S.String),
@@ -93,6 +149,17 @@ export const BoatListingSummary = S.Struct({
   offersCargo: S.Boolean,
 });
 export type BoatListingSummary = S.Schema.Type<typeof BoatListingSummary>;
+
+export const OwnerBoatListingSummary = S.Struct({
+  id: BoatId,
+  slug: S.optional(S.String),
+  translation: BoatTranslation,
+  route: Route,
+  capacity: CapacityInfo,
+  departures: S.Array(BoatDeparture),
+  isActive: S.Boolean,
+});
+export type OwnerBoatListingSummary = S.Schema.Type<typeof OwnerBoatListingSummary>;
 
 export const BoatListingDetail = S.Struct({
   id: BoatId,
@@ -135,3 +202,9 @@ export const SearchBoatsResponse = S.Struct({
 });
 export type SearchBoatsResponse = S.Schema.Type<typeof SearchBoatsResponse>;
 
+export const ListOwnerBoatListingsResponse = S.Struct({
+  items: S.Array(OwnerBoatListingSummary),
+});
+export type ListOwnerBoatListingsResponse = S.Schema.Type<
+  typeof ListOwnerBoatListingsResponse
+>;

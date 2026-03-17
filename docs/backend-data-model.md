@@ -4,7 +4,7 @@ This document defines the **relational data model** for the JumpInBoat MVP, alig
 
 ## Overview of Core Entities
 
-- **users** – authentication and roles (customer, owner, admin).
+- **users** – authentication and roles (`owner`, `admin`).
 - **boats** – a physical boat or service operated by an owner.
 - **boat_translations** – user-facing, translatable listing content (EN/HR).
 - **boat_routes** – the canonical route for a boat (start → stops → end) and base pricing.
@@ -26,12 +26,12 @@ Columns:
 - `id` (PK, UUID)
 - `email` (unique, text)
 - `password_hash` (text, nullable for SSO)
-- `role_primary` (enum: `customer`, `owner`, `both`, `admin`)
+- `role_primary` (enum: `owner`, `admin`)
 - `created_at` (timestamptz, default now)
 - `updated_at` (timestamptz)
 
 Notes:
-- Per spec, a single account can act as both **Customer** and **Boat Owner**; this is captured via `role_primary` or a separate join table later if more granular role permissions are needed.
+- Every signed-in user can make bookings as a customer by default; stored roles only control elevated capabilities such as managing boat listings or administration.
 
 ### 2. `boats`
 
@@ -239,4 +239,3 @@ In `packages/api/src/db`, create a `schema.ts` with Drizzle table definitions th
 - `bookings`, `booking_stops`, and optionally `booking_cargo_items` for bookings and pricing breakdown.
 
 Migrations generated via `drizzle-kit` should align with this model.
-

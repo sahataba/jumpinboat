@@ -1,34 +1,43 @@
 import * as S from "@effect/schema/Schema";
 
-export const UserRole = S.Literal("user", "admin");
-export type UserRole = "user" | "admin";
+const Email = S.String.pipe(S.pattern(/^[^@\s]+@[^@\s]+\.[^@\s]+$/));
+
+export const UserRolePrimary = S.Literal("owner", "admin");
+export type UserRolePrimary = S.Schema.Type<typeof UserRolePrimary>;
 
 export const UserId = S.String.pipe(S.brand("UserId"));
 export type UserId = string & { readonly _brand: "UserId" };
 
 export const User = S.Struct({
   id: UserId,
-  email: S.String.pipe(S.pattern(/^[^@\s]+@[^@\s]+\.[^@\s]+$/)),
-  role: UserRole
+  email: Email,
+  rolePrimary: UserRolePrimary,
 });
+export type User = S.Schema.Type<typeof User>;
 
-export interface User {
-  id: UserId;
-  email: string;
-  role: UserRole;
-}
+export const SignUpRequest = S.Struct({
+  email: Email,
+  password: S.String.pipe(S.minLength(8)),
+  rolePrimary: S.optional(UserRolePrimary),
+});
+export type SignUpRequest = S.Schema.Type<typeof SignUpRequest>;
+
+export const SignInRequest = S.Struct({
+  email: Email,
+  password: S.String.pipe(S.minLength(1)),
+});
+export type SignInRequest = S.Schema.Type<typeof SignInRequest>;
 
 export const AuthTokenPayload = S.Struct({
   sub: UserId,
-  email: S.String,
-  role: UserRole,
-  exp: S.Number
+  email: Email,
+  rolePrimary: UserRolePrimary,
+  exp: S.Number,
 });
+export type AuthTokenPayload = S.Schema.Type<typeof AuthTokenPayload>;
 
-export interface AuthTokenPayload {
-  sub: UserId;
-  email: string;
-  role: UserRole;
-  exp: number;
-}
-
+export const AuthResponse = S.Struct({
+  token: S.String,
+  user: User,
+});
+export type AuthResponse = S.Schema.Type<typeof AuthResponse>;

@@ -12,9 +12,7 @@ import {
 // Enums
 
 export const userRolePrimaryEnum = pgEnum("user_role_primary", [
-  "customer",
   "owner",
-  "both",
   "admin",
 ]);
 
@@ -37,7 +35,7 @@ export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash"),
-  rolePrimary: userRolePrimaryEnum("role_primary").notNull().default("customer"),
+  rolePrimary: userRolePrimaryEnum("role_primary").notNull().default("owner"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -226,4 +224,3 @@ export const bookingCargoItems = pgTable("booking_cargo_items", {
   weightKg: integer("weight_kg").notNull(),
   packageCount: integer("package_count"),
 });
-
