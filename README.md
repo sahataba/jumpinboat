@@ -45,6 +45,9 @@ npm run build
 
 - Dev: `npm run dev:web` → http://localhost:3000
 - Build: `npm run build` then `npm run start` in `packages/web`
+- SSR boat fetching uses an absolute base URL. Set one of these env vars for the web app when needed: `NEXT_PUBLIC_API_BASE_URL`, `API_BASE_URL`, or `NEXT_PUBLIC_APP_URL`
+- Local dev default: if none are set, web falls back to `http://localhost:3000` and uses the Next rewrite for `/api/*` → `http://localhost:4000/api/*`
+- Example for local/custom setup: `NEXT_PUBLIC_API_BASE_URL=http://localhost:3000 npm run dev:web`
 
 ## Mobile
 

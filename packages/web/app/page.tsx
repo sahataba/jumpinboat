@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Result } from "@effect-atom/atom-react";
 import { Cause } from "effect";
 
@@ -78,6 +79,7 @@ const BoatCard = ({ boat }: { boat: BoatListingSummary }) => (
 );
 
 export default function HomePage() {
+  const [isHydrated, setIsHydrated] = useState(false);
   const { filters, setFilters } = usePublicBoatFilters();
   const { activeFilterCount, result } = usePublicBoatList();
   const updateFilters = (
@@ -85,6 +87,10 @@ export default function HomePage() {
       | PublicBoatListFilters
       | ((current: PublicBoatListFilters) => PublicBoatListFilters),
   ) => setFilters(nextFilters);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(45,212,191,0.2),_transparent_35%),linear-gradient(180deg,_#f8fafc_0%,_#eef6f4_45%,_#ffffff_100%)] text-slate-900">
@@ -178,45 +184,51 @@ export default function HomePage() {
           </p>
         </div>
 
-        {Result.builder(result)
-          .onInitial(() => (
-            <section className="rounded-[32px] border border-slate-200 bg-white p-8 text-sm text-slate-500 shadow-[0_16px_60px_rgba(15,23,42,0.08)]">
-              Loading public boats...
-            </section>
-          ))
-          .onFailure((cause) => (
-            <section className="rounded-[32px] border border-rose-200 bg-rose-50 p-8 text-sm text-rose-700 shadow-[0_16px_60px_rgba(15,23,42,0.08)]">
-              {Cause.pretty(cause as Cause.Cause<unknown>)}
-            </section>
-          ))
-          .onSuccess((boats: ReadonlyArray<BoatListingSummary>) => (
-            <section className="space-y-5">
-              <div className="flex items-end justify-between gap-4">
-                <div>
-                  <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Available listings</p>
-                  <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em] text-slate-950">
-                    {boats.length} public boat option{boats.length === 1 ? "" : "s"}
-                  </h2>
+        {!isHydrated ? (
+          <section className="rounded-[32px] border border-slate-200 bg-white p-8 text-sm text-slate-500 shadow-[0_16px_60px_rgba(15,23,42,0.08)]">
+            Loading public boats...
+          </section>
+        ) : (
+          Result.builder(result)
+            .onInitial(() => (
+              <section className="rounded-[32px] border border-slate-200 bg-white p-8 text-sm text-slate-500 shadow-[0_16px_60px_rgba(15,23,42,0.08)]">
+                Loading public boats...
+              </section>
+            ))
+            .onFailure((cause) => (
+              <section className="rounded-[32px] border border-rose-200 bg-rose-50 p-8 text-sm text-rose-700 shadow-[0_16px_60px_rgba(15,23,42,0.08)]">
+                {Cause.pretty(cause as Cause.Cause<unknown>)}
+              </section>
+            ))
+            .onSuccess((boats: ReadonlyArray<BoatListingSummary>) => (
+              <section className="space-y-5">
+                <div className="flex items-end justify-between gap-4">
+                  <div>
+                    <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Available listings</p>
+                    <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em] text-slate-950">
+                      {boats.length} public boat option{boats.length === 1 ? "" : "s"}
+                    </h2>
+                  </div>
+                  <p className="max-w-md text-right text-sm leading-6 text-slate-500">
+                    The backend filters query text, cargo support, and free seats before the list reaches the page.
+                  </p>
                 </div>
-                <p className="max-w-md text-right text-sm leading-6 text-slate-500">
-                  The backend filters query text, cargo support, and free seats before the list reaches the page.
-                </p>
-              </div>
 
-              <div className="grid gap-5">
-                {boats.map((boat) => (
-                  <BoatCard key={boat.id} boat={boat} />
-                ))}
-              </div>
-
-              {boats.length === 0 ? (
-                <div className="rounded-[28px] border border-dashed border-slate-300 bg-white/80 p-10 text-center text-sm text-slate-500">
-                  No boats match the current filters yet. Try widening the seat count or clearing the search.
+                <div className="grid gap-5">
+                  {boats.map((boat) => (
+                    <BoatCard key={boat.id} boat={boat} />
+                  ))}
                 </div>
-              ) : null}
-            </section>
-          ))
-          .render()}
+
+                {boats.length === 0 ? (
+                  <div className="rounded-[28px] border border-dashed border-slate-300 bg-white/80 p-10 text-center text-sm text-slate-500">
+                    No boats match the current filters yet. Try widening the seat count or clearing the search.
+                  </div>
+                ) : null}
+              </section>
+            ))
+            .render()
+        )}
       </section>
     </main>
   );
