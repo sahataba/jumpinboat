@@ -8,23 +8,56 @@ export type PublicBoatListFilters = {
   readonly query: string;
   readonly goodsTransportOnly: boolean;
   readonly minFreeSpots: number;
+  readonly locale: "en" | "hr";
+  /** When set, filter listings near this point (km). */
+  readonly nearMeLat?: number;
+  readonly nearMeLng?: number;
+  readonly nearMeRadiusKm: number;
+  /** Route search: optional start/end on map (degrees). */
+  readonly routeStartLat?: number;
+  readonly routeStartLng?: number;
+  readonly routeEndLat?: number;
+  readonly routeEndLng?: number;
+  readonly routeMatchKm: number;
 };
 
 export const defaultPublicBoatListFilters: PublicBoatListFilters = {
   query: "",
   goodsTransportOnly: false,
   minFreeSpots: 0,
+  locale: "en",
+  nearMeRadiusKm: 25,
+  routeMatchKm: 8,
 };
 
 export const normalizePublicBoatListFilters = (
   filters: PublicBoatListFilters,
-): PublicBoatListFilters => ({
-  query: filters.query.trim(),
-  goodsTransportOnly: filters.goodsTransportOnly,
-  minFreeSpots: Number.isFinite(filters.minFreeSpots)
-    ? Math.max(0, Math.floor(filters.minFreeSpots))
-    : 0,
-});
+): PublicBoatListFilters => {
+  const lat = (v: number | undefined) =>
+    typeof v === "number" && Number.isFinite(v) ? v : undefined;
+  const lng = (v: number | undefined) =>
+    typeof v === "number" && Number.isFinite(v) ? v : undefined;
+  return {
+    query: filters.query.trim(),
+    goodsTransportOnly: filters.goodsTransportOnly,
+    minFreeSpots: Number.isFinite(filters.minFreeSpots)
+      ? Math.max(0, Math.floor(filters.minFreeSpots))
+      : 0,
+    locale: filters.locale === "hr" ? "hr" : "en",
+    nearMeLat: lat(filters.nearMeLat),
+    nearMeLng: lng(filters.nearMeLng),
+    nearMeRadiusKm: Number.isFinite(filters.nearMeRadiusKm)
+      ? Math.max(1, filters.nearMeRadiusKm)
+      : 25,
+    routeStartLat: lat(filters.routeStartLat),
+    routeStartLng: lng(filters.routeStartLng),
+    routeEndLat: lat(filters.routeEndLat),
+    routeEndLng: lng(filters.routeEndLng),
+    routeMatchKm: Number.isFinite(filters.routeMatchKm)
+      ? Math.max(1, filters.routeMatchKm)
+      : 8,
+  };
+};
 
 export const buildPublicBoatsSearchPath = (
   filters: PublicBoatListFilters,
@@ -45,6 +78,27 @@ export const buildPublicBoatsSearchPath = (
     params.set("minFreeSpots", String(normalized.minFreeSpots));
   }
 
+  params.set("locale", normalized.locale);
+
+  if (normalized.nearMeLat != null && normalized.nearMeLng != null) {
+    params.set("nearMeLat", String(normalized.nearMeLat));
+    params.set("nearMeLng", String(normalized.nearMeLng));
+    params.set("nearMeRadiusKm", String(normalized.nearMeRadiusKm));
+  }
+
+  if (
+    normalized.routeStartLat != null &&
+    normalized.routeStartLng != null &&
+    normalized.routeEndLat != null &&
+    normalized.routeEndLng != null
+  ) {
+    params.set("routeStartLat", String(normalized.routeStartLat));
+    params.set("routeStartLng", String(normalized.routeStartLng));
+    params.set("routeEndLat", String(normalized.routeEndLat));
+    params.set("routeEndLng", String(normalized.routeEndLng));
+    params.set("routeMatchKm", String(normalized.routeMatchKm));
+  }
+
   const queryString = params.toString();
   return queryString.length > 0 ? `${basePath}?${queryString}` : basePath;
 };
@@ -58,6 +112,11 @@ export const countActivePublicBoatFilters = (
     normalized.query.length > 0,
     normalized.goodsTransportOnly,
     normalized.minFreeSpots > 0,
+    normalized.nearMeLat != null && normalized.nearMeLng != null,
+    normalized.routeStartLat != null &&
+      normalized.routeStartLng != null &&
+      normalized.routeEndLat != null &&
+      normalized.routeEndLng != null,
   ].filter(Boolean).length;
 };
 

@@ -11,6 +11,8 @@ export type AuthFormValues = {
   readonly email: string;
   readonly password: string;
   readonly rolePrimary: UserRolePrimary;
+  readonly canBook: boolean;
+  readonly canListBoats: boolean;
 };
 
 const SESSION_STORAGE_KEY = "jumpinboat.auth.session";
@@ -32,14 +34,16 @@ export const submitAuthForm = async (
   const payload =
     mode === "sign-in"
       ? {
-        email: values.email,
-        password: values.password,
-      }
+          email: values.email,
+          password: values.password,
+        }
       : {
-        email: values.email,
-        password: values.password,
-        rolePrimary: values.rolePrimary,
-      };
+          email: values.email,
+          password: values.password,
+          rolePrimary: values.rolePrimary,
+          canBook: values.canBook,
+          canListBoats: values.canListBoats,
+        };
 
   const response = await fetch(endpoint, {
     method: "POST",

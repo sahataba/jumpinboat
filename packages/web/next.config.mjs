@@ -9,5 +9,5 @@ const nextConfig = {
     ];
   },
 };
-//todo
+
 export default nextConfig;

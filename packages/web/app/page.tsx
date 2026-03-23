@@ -33,7 +33,10 @@ const formatPricingSummary = (boat: BoatListingSummary) => {
 };
 
 const BoatCard = ({ boat }: { boat: BoatListingSummary }) => (
-  <article className="rounded-[28px] border border-slate-200 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur">
+  <Link
+    href={`/boats/${boat.id}`}
+    className="block rounded-[28px] border border-slate-200 bg-white/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur transition hover:border-teal-300 hover:shadow-lg"
+  >
     <div className="flex items-start justify-between gap-4">
       <div className="space-y-2">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-teal-700">
@@ -76,7 +79,7 @@ const BoatCard = ({ boat }: { boat: BoatListingSummary }) => (
         </p>
       </div>
     </div>
-  </article>
+  </Link>
 );
 
 export default function HomePage() {
@@ -103,22 +106,31 @@ export default function HomePage() {
             </p>
             <div className="space-y-4">
               <h1 className="max-w-4xl text-5xl font-semibold leading-tight tracking-[-0.04em] text-slate-950 md:text-6xl">
-                Public boat listings backed by a tiny in-memory API and shared effect-atom state.
+                Licensed skipper-led boat transport — book routes on the map.
               </h1>
               <p className="max-w-2xl text-base leading-7 text-slate-600 md:text-lg">
-                This slice validates customer-side discovery on web: shared contracts,
-                backend filtering, and reactive state flowing through Effect Atom.
+                JumpInBoat MVP: PostgreSQL-backed listings, OpenStreetMap discovery, pay on arrival,
+                weather-risk stub, English/Croatian content, and booking requests with owner accept/decline.
               </p>
               <div className="flex flex-wrap gap-3 pt-2">
                 <Link
                   href="/auth"
                   className="inline-flex items-center rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
                 >
-                  Open owner auth
+                  Sign in / Sign up
                 </Link>
-                <span className="inline-flex items-center rounded-full border border-teal-200 bg-white/80 px-4 py-3 text-sm text-teal-800">
-                  Sign up and sign in now run against the API slice
-                </span>
+                <Link
+                  href="/bookings"
+                  className="inline-flex items-center rounded-full border border-teal-200 bg-white/80 px-5 py-3 text-sm font-medium text-teal-900"
+                >
+                  My bookings
+                </Link>
+                <Link
+                  href="/owner/bookings"
+                  className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-5 py-3 text-sm font-medium text-amber-950"
+                >
+                  Owner inbox
+                </Link>
               </div>
             </div>
           </div>
@@ -141,6 +153,98 @@ export default function HomePage() {
                   placeholder="Try Rovinj, market, sunset..."
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
                 />
+              </label>
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+                    navigator.geolocation.getCurrentPosition(
+                      (pos) => {
+                        updateFilters((c) => ({
+                          ...c,
+                          nearMeLat: pos.coords.latitude,
+                          nearMeLng: pos.coords.longitude,
+                        }));
+                      },
+                      () => {
+                        window.alert("Could not read your location.");
+                      },
+                    );
+                  }}
+                  className="rounded-full bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
+                >
+                  Near me
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateFilters((c) => ({
+                      ...c,
+                      nearMeLat: undefined,
+                      nearMeLng: undefined,
+                    }))
+                  }
+                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700"
+                >
+                  Clear near me
+                </button>
+              </div>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-slate-700">
+                  Route search (start / end lat,lng, optional)
+                </span>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <input
+                    placeholder="Start lat"
+                    className="rounded-xl border border-slate-200 px-2 py-2"
+                    onBlur={(e) => {
+                      const v = e.target.value ? Number(e.target.value) : undefined;
+                      updateFilters((c) => ({ ...c, routeStartLat: v }));
+                    }}
+                  />
+                  <input
+                    placeholder="Start lng"
+                    className="rounded-xl border border-slate-200 px-2 py-2"
+                    onBlur={(e) => {
+                      const v = e.target.value ? Number(e.target.value) : undefined;
+                      updateFilters((c) => ({ ...c, routeStartLng: v }));
+                    }}
+                  />
+                  <input
+                    placeholder="End lat"
+                    className="rounded-xl border border-slate-200 px-2 py-2"
+                    onBlur={(e) => {
+                      const v = e.target.value ? Number(e.target.value) : undefined;
+                      updateFilters((c) => ({ ...c, routeEndLat: v }));
+                    }}
+                  />
+                  <input
+                    placeholder="End lng"
+                    className="rounded-xl border border-slate-200 px-2 py-2"
+                    onBlur={(e) => {
+                      const v = e.target.value ? Number(e.target.value) : undefined;
+                      updateFilters((c) => ({ ...c, routeEndLng: v }));
+                    }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="mt-2 text-xs text-teal-700 underline"
+                  onClick={() =>
+                    updateFilters((c) => ({
+                      ...c,
+                      routeStartLat: undefined,
+                      routeStartLng: undefined,
+                      routeEndLat: undefined,
+                      routeEndLng: undefined,
+                    }))
+                  }
+                >
+                  Clear route filter
+                </button>
               </label>
 
               <label className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
@@ -189,7 +293,8 @@ export default function HomePage() {
 
         <div className="flex items-center justify-between gap-4 rounded-[28px] border border-teal-100 bg-teal-50/70 px-5 py-4 text-sm text-teal-950">
           <p>
-            Shared atoms live in `@jumpinboat/shared`, so web and mobile both read the same boat list state model.
+            Maps use OpenStreetMap tiles. Listings load from the API / Postgres after `npm run db:migrate` and
+            `npm run db:seed` in `packages/api`.
           </p>
           <p className="rounded-full bg-white px-3 py-1 font-medium text-teal-700">
             {activeFilterCount} active filter{activeFilterCount === 1 ? "" : "s"}

@@ -6,6 +6,7 @@ export default function RootLayout() {
     <>
       <Stack>
         <Stack.Screen name="index" options={{ title: "Jumpinboat" }} />
+        <Stack.Screen name="boats/[boatId]" options={{ title: "Boat" }} />
       </Stack>
       <StatusBar style="auto" />
     </>

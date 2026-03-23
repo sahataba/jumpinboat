@@ -39,9 +39,20 @@ npm run build
 ## API
 
 - Dev: `npm run dev:api` (default port 4000, set `PORT` to override)
-- Set `DATABASE_URL` before starting the API; auth now persists users in Postgres instead of in memory
+- Set `DATABASE_URL` before starting the API; auth persists users in Postgres
 - Set `JWT_SECRET` to override the local development token secret
-- DB: `npm run db:generate`, `npm run db:migrate`, `npm run db:seed` (from `packages/api`)
+- **First-time DB:** from `packages/api` run `npm run db:migrate` then `npm run db:seed` (sample boats + departures + `owner@jumpinboat.local` / `password123`)
+- Other scripts: `npm run db:generate` (after schema edits), `npm run db:migrate`, `npm run db:seed`
+
+### MVP endpoints (high level)
+
+- `GET /api/boats/search` — discovery (query params: `query`, `goodsTransportOnly`, `minFreeSpots`, `locale`, `nearMeLat`/`nearMeLng`/`nearMeRadiusKm`, route `routeStartLat`…`routeEndLng`, `routeMatchKm`)
+- `GET /api/boats/detail?boatId=` — listing + route for map
+- `GET /api/boats/departures?boatId=` — upcoming departures
+- `POST /api/auth/sign-up` — body: `email`, `password`, optional `canBook` / `canListBoats` (at least one must be true)
+- `POST /api/bookings` — bearer token, customer with `canBook`
+- `GET /api/bookings/mine`, `GET /api/bookings/owner`, `PATCH /api/bookings/owner-status` — `{ bookingId, status: confirmed|declined }`
+- `POST /api/translate` — stub AI/translation hook for EN/HR (`{ text, targetLocale }`)
 
 ## Web
 

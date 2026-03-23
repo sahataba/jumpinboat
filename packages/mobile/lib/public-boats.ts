@@ -1,4 +1,3 @@
-import { Platform } from "react-native";
 import {
   buildPublicBoatsSearchPath,
   createPublicBoatListClient,
@@ -6,13 +5,7 @@ import {
   type PublicBoatListFilters,
 } from "@jumpinboat/shared";
 
-const getApiBaseUrl = () => {
-  if (Platform.OS === "android") {
-    return "http://10.0.2.2:4000";
-  }
-
-  return "http://localhost:4000";
-};
+import { getApiBaseUrl } from "./api-base";
 
 const loadPublicBoats = loadPublicBoatsFromUrl(
   (filters: PublicBoatListFilters) =>

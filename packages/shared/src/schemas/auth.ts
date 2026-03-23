@@ -12,6 +12,8 @@ export const User = S.Struct({
   id: UserId,
   email: Email,
   rolePrimary: UserRolePrimary,
+  canBook: S.Boolean,
+  canListBoats: S.Boolean,
 });
 export type User = S.Schema.Type<typeof User>;
 
@@ -19,6 +21,10 @@ export const SignUpRequest = S.Struct({
   email: Email,
   password: S.String.pipe(S.minLength(8)),
   rolePrimary: S.optional(UserRolePrimary),
+  /** Book transport as a customer (default true). */
+  canBook: S.optional(S.Boolean),
+  /** List boats as an operator (default false; true when signing up as owner). */
+  canListBoats: S.optional(S.Boolean),
 });
 export type SignUpRequest = S.Schema.Type<typeof SignUpRequest>;
 
@@ -32,6 +38,8 @@ export const AuthTokenPayload = S.Struct({
   sub: UserId,
   email: Email,
   rolePrimary: UserRolePrimary,
+  canBook: S.Boolean,
+  canListBoats: S.Boolean,
   exp: S.Number,
 });
 export type AuthTokenPayload = S.Schema.Type<typeof AuthTokenPayload>;

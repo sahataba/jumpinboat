@@ -37,7 +37,7 @@ const parseSignUpRequest = (body: unknown): Effect.Effect<SignUpRequest, ApiErro
         throw new ApiError(400, "Request body must be a JSON object");
       }
 
-      const { email, password, rolePrimary } = body;
+      const { email, password, rolePrimary, canBook, canListBoats } = body;
 
       if (typeof email !== "string" || !isEmail(email)) {
         throw new ApiError(422, "A valid email is required");
@@ -51,10 +51,20 @@ const parseSignUpRequest = (body: unknown): Effect.Effect<SignUpRequest, ApiErro
         throw new ApiError(422, "rolePrimary must be 'owner' or 'admin'");
       }
 
+      if (typeof canBook !== "undefined" && typeof canBook !== "boolean") {
+        throw new ApiError(422, "canBook must be a boolean");
+      }
+
+      if (typeof canListBoats !== "undefined" && typeof canListBoats !== "boolean") {
+        throw new ApiError(422, "canListBoats must be a boolean");
+      }
+
       return {
         email,
         password,
         rolePrimary,
+        canBook,
+        canListBoats,
       };
     },
     catch: (error) =>
@@ -96,6 +106,8 @@ const createToken = (user: User) =>
         sub: user.id,
         email: user.email,
         rolePrimary: user.rolePrimary,
+        canBook: user.canBook,
+        canListBoats: user.canListBoats,
         exp,
       };
 
@@ -114,6 +126,8 @@ const toAuthResponse = (user: User): Effect.Effect<AuthResponse, ApiError> =>
 
 const signUp = (input: SignUpRequest) => {
   const email = normalizeEmail(input.email);
+  const canBook = input.canBook !== false;
+  const canListBoats = input.canListBoats === true;
 
   return Effect.tryPromise({
     try: async () => {
@@ -127,11 +141,17 @@ const signUp = (input: SignUpRequest) => {
         throw new ApiError(403, "Admin accounts cannot be created through sign up");
       }
 
+      if (!canBook && !canListBoats) {
+        throw new ApiError(422, "Select at least one of: book transport or list boats");
+      }
+
       return UserRepository.create({
         id: randomUUID(),
         email,
         passwordHash: await argon2.hash(input.password),
         rolePrimary: "owner",
+        canBook,
+        canListBoats,
       });
     },
     catch: (error) =>
@@ -160,6 +180,8 @@ const signIn = (input: SignInRequest) => {
         id: userRecord.id as User["id"],
         email: userRecord.email,
         rolePrimary: userRecord.rolePrimary,
+        canBook: userRecord.canBook,
+        canListBoats: userRecord.canListBoats,
       } satisfies User;
     },
     catch: (error) =>
@@ -173,9 +195,12 @@ const getCurrentUser = (token: string) =>
       const verified = await jwtVerify(token, jwtSecret);
       const payload = verified.payload as Partial<AuthTokenPayload>;
 
+      if (typeof payload.sub !== "string" || typeof payload.email !== "string") {
+        throw new ApiError(401, "Invalid or expired token");
+      }
+
       if (
-        typeof payload.sub !== "string" ||
-        typeof payload.email !== "string" ||
+        typeof payload.rolePrimary === "string" &&
         !isRolePrimary(payload.rolePrimary)
       ) {
         throw new ApiError(401, "Invalid or expired token");

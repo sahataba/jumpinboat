@@ -1,6 +1,8 @@
 import { Result } from "@effect-atom/atom-react";
 import { Cause } from "effect";
+import { useRouter } from "expo-router";
 import {
+  Pressable,
   ScrollView,
   StyleSheet,
   Switch,
@@ -33,8 +35,14 @@ const formatPricingSummary = (boat: BoatListingSummary) => {
   return `${base} + ${boat.route.pricing.uniformPricePerStop?.amount ?? 0} ${currency}/stop`;
 };
 
-const BoatCard = ({ boat }: { boat: BoatListingSummary }) => (
-  <View style={styles.card}>
+const BoatCard = ({
+  boat,
+  onOpen,
+}: {
+  boat: BoatListingSummary;
+  onOpen: () => void;
+}) => (
+  <Pressable onPress={onOpen} style={styles.card}>
     <View style={styles.cardHeader}>
       <View style={styles.cardHeaderCopy}>
         <Text style={styles.eyebrow}>Public route</Text>
@@ -71,10 +79,11 @@ const BoatCard = ({ boat }: { boat: BoatListingSummary }) => (
         </Text>
       </View>
     </View>
-  </View>
+  </Pressable>
 );
 
 export default function HomeScreen() {
+  const router = useRouter();
   const { filters, setFilters } = usePublicBoatFilters();
   const { activeFilterCount, result } = usePublicBoatList();
   const updateFilters = (
@@ -87,9 +96,9 @@ export default function HomeScreen() {
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.hero}>
         <Text style={styles.eyebrow}>JumpInBoat discovery</Text>
-        <Text style={styles.heroTitle}>Shared Effect Atom state, validated on mobile too.</Text>
+        <Text style={styles.heroTitle}>Skippered transport discovery (API + Postgres).</Text>
         <Text style={styles.heroBody}>
-          The same public boat list atom factory now powers a native results screen against the in-memory API.
+          Tap a card for detail. Run API with DATABASE_URL, migrate, and seed sample listings.
         </Text>
       </View>
 
@@ -171,7 +180,13 @@ export default function HomeScreen() {
             {boats.length === 0 ? (
               <Text style={styles.feedback}>No boats match these filters right now.</Text>
             ) : (
-              boats.map((boat) => <BoatCard key={boat.id} boat={boat} />)
+              boats.map((boat) => (
+                <BoatCard
+                  key={boat.id}
+                  boat={boat}
+                  onOpen={() => router.push(`/boats/${boat.id}`)}
+                />
+              ))
             )}
           </View>
         ))

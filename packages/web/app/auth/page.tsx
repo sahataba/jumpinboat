@@ -22,6 +22,8 @@ export default function AuthPage() {
   const [feedback, setFeedback] = useState(emptyFeedback);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [canBook, setCanBook] = useState(true);
+  const [canListBoats, setCanListBoats] = useState(true);
 
   useEffect(() => {
     setSession(readPersistedAuthSession());
@@ -43,6 +45,8 @@ export default function AuthPage() {
         email,
         password,
         rolePrimary: "owner",
+        canBook,
+        canListBoats,
       });
 
       persistAuthSession(nextSession);
@@ -154,6 +158,31 @@ export default function AuthPage() {
               />
             </label>
 
+            {mode === "sign-up" ? (
+              <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-sm font-medium text-slate-800">Account capabilities</p>
+                <label className="flex items-center gap-3 text-sm text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={canBook}
+                    onChange={(e) => setCanBook(e.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300"
+                  />
+                  Book skipper-led transport
+                </label>
+                <label className="flex items-center gap-3 text-sm text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={canListBoats}
+                    onChange={(e) => setCanListBoats(e.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300"
+                  />
+                  List boats / manage departures
+                </label>
+                <p className="text-xs text-slate-500">Select at least one (MVP allows both).</p>
+              </div>
+            ) : null}
+
             <button
               type="submit"
               disabled={isSubmitting}
@@ -193,6 +222,14 @@ export default function AuthPage() {
               <p>
                 <span className="font-medium text-slate-900">Role:</span>{" "}
                 {session?.user.rolePrimary ?? "-"}
+              </p>
+              <p>
+                <span className="font-medium text-slate-900">Can book:</span>{" "}
+                {session?.user.canBook != null ? String(session.user.canBook) : "-"}
+              </p>
+              <p>
+                <span className="font-medium text-slate-900">Can list boats:</span>{" "}
+                {session?.user.canListBoats != null ? String(session.user.canListBoats) : "-"}
               </p>
               <p className="break-all">
                 <span className="font-medium text-slate-900">Token:</span>{" "}

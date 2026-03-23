@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   pgTable,
   uuid,
@@ -7,6 +8,7 @@ import {
   boolean,
   timestamp,
   pgEnum,
+  jsonb,
 } from "drizzle-orm/pg-core";
 
 // Enums
@@ -36,6 +38,8 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash"),
   rolePrimary: userRolePrimaryEnum("role_primary").notNull().default("owner"),
+  canBook: boolean("can_book").notNull().default(true),
+  canListBoats: boolean("can_list_boats").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -53,6 +57,11 @@ export const boats = pgTable("boats", {
     // FK → users.id (enforced in migrations)
     ,
   slug: text("slug").unique(),
+  skipperIncluded: boolean("skipper_included").notNull().default(true),
+  photos: jsonb("photos")
+    .$type<ReadonlyArray<string>>()
+    .notNull()
+    .default(sql`'[]'::jsonb`),
   maxPassengers: integer("max_passengers").notNull(),
   maxTotalLoadKg: integer("max_total_load_kg").notNull(),
   offersCargo: boolean("offers_cargo").notNull().default(false),

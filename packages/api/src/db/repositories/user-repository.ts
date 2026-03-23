@@ -12,12 +12,18 @@ export type CreateUserRecord = {
   readonly email: string;
   readonly passwordHash: string;
   readonly rolePrimary: UserRolePrimary;
+  readonly canBook: boolean;
+  readonly canListBoats: boolean;
 };
 
-const toUser = (row: Pick<UserRecord, "id" | "email" | "rolePrimary">): User => ({
+const toUser = (
+  row: Pick<UserRecord, "id" | "email" | "rolePrimary" | "canBook" | "canListBoats">,
+): User => ({
   id: row.id as User["id"],
   email: row.email,
   rolePrimary: row.rolePrimary,
+  canBook: row.canBook,
+  canListBoats: row.canListBoats,
 });
 
 export const UserRepository = {
@@ -29,11 +35,15 @@ export const UserRepository = {
         email: input.email,
         passwordHash: input.passwordHash,
         rolePrimary: input.rolePrimary,
+        canBook: input.canBook,
+        canListBoats: input.canListBoats,
       })
       .returning({
         id: users.id,
         email: users.email,
         rolePrimary: users.rolePrimary,
+        canBook: users.canBook,
+        canListBoats: users.canListBoats,
       });
 
     return toUser(row);
@@ -51,6 +61,28 @@ export const UserRepository = {
 
   async findById(id: string): Promise<User | null> {
     const [row] = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    return row ? toUser(row) : null;
+  },
+
+  async updateCapabilities(
+    id: string,
+    caps: { canBook?: boolean; canListBoats?: boolean },
+  ): Promise<User | null> {
+    const [row] = await db
+      .update(users)
+      .set({
+        ...(caps.canBook !== undefined ? { canBook: caps.canBook } : {}),
+        ...(caps.canListBoats !== undefined ? { canListBoats: caps.canListBoats } : {}),
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
+      .returning({
+        id: users.id,
+        email: users.email,
+        rolePrimary: users.rolePrimary,
+        canBook: users.canBook,
+        canListBoats: users.canListBoats,
+      });
     return row ? toUser(row) : null;
   },
 };
