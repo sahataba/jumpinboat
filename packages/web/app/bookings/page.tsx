@@ -13,7 +13,7 @@ export default function MyBookingsPage() {
   useEffect(() => {
     const session = readPersistedAuthSession();
     if (!session) {
-      setErr("Sign in on the auth page first.");
+      setErr("Sign in to see your bookings.");
       setItems([]);
       return;
     }
@@ -36,8 +36,8 @@ export default function MyBookingsPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-10 text-slate-900">
-      <div className="mx-auto max-w-2xl space-y-6">
+    <main className="jb-page">
+      <div className="jb-section-narrow">
         <Link href="/" className="text-sm text-teal-700 underline">
           ← Discovery
         </Link>
@@ -47,12 +47,10 @@ export default function MyBookingsPage() {
         {items && items.length === 0 && !err ? <p>No bookings yet.</p> : null}
         <ul className="space-y-4">
           {(items ?? []).map((b) => (
-            <li
-              key={b.id}
-              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
-            >
+            <li key={b.id} className="jb-card">
               <p className="font-medium">
-                {b.status} · {b.passengerCount} pax
+                {b.status} · {b.passengerCount}{" "}
+                {b.passengerCount === 1 ? "passenger" : "passengers"}
               </p>
               <p className="text-sm text-slate-600">
                 Total {b.price.totalPrice.amount} {b.price.totalPrice.currency} · pay on arrival

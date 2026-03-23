@@ -1,5 +1,4 @@
 import { Result } from "@effect-atom/atom-react";
-import { Cause } from "effect";
 import { useRouter } from "expo-router";
 import {
   Pressable,
@@ -12,7 +11,11 @@ import {
 } from "react-native";
 
 import { usePublicBoatFilters, usePublicBoatList } from "../lib/public-boats";
-import type { BoatListingSummary, PublicBoatListFilters } from "@jumpinboat/shared";
+import {
+  type BoatListingSummary,
+  type PublicBoatListFilters,
+  userFacingListLoadError,
+} from "@jumpinboat/shared";
 
 const formatRouteSummary = (boat: BoatListingSummary) => {
   const start = boat.translation.startLocationLabel ?? "Departure";
@@ -96,9 +99,9 @@ export default function HomeScreen() {
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.hero}>
         <Text style={styles.eyebrow}>JumpInBoat discovery</Text>
-        <Text style={styles.heroTitle}>Skippered transport discovery (API + Postgres).</Text>
+        <Text style={styles.heroTitle}>Licensed skipper-led routes near you</Text>
         <Text style={styles.heroBody}>
-          Tap a card for detail. Run API with DATABASE_URL, migrate, and seed sample listings.
+          Browse listings shared with our website. Tap a card for route details and next steps.
         </Text>
       </View>
 
@@ -159,7 +162,7 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.banner}>
-        <Text style={styles.bannerText}>Shared atoms live in `@jumpinboat/shared`.</Text>
+        <Text style={styles.bannerText}>Listings update as captains publish routes.</Text>
         <Text style={styles.bannerCount}>{activeFilterCount} active</Text>
       </View>
 
@@ -167,15 +170,13 @@ export default function HomeScreen() {
         .onInitial(() => <Text style={styles.feedback}>Loading public boats...</Text>)
         .onFailure((cause) => (
           <Text style={[styles.feedback, styles.feedbackError]}>
-            {Cause.pretty(cause as Cause.Cause<unknown>)}
+            {userFacingListLoadError(cause)}
           </Text>
         ))
         .onSuccess((boats: ReadonlyArray<BoatListingSummary>) => (
           <View style={styles.listSection}>
             <Text style={styles.listTitle}>{boats.length} public boat options</Text>
-            <Text style={styles.listSubtitle}>
-              Native filtering and rendering are driven by the same shared list atoms as web.
-            </Text>
+            <Text style={styles.listSubtitle}>Same listings as the JumpInBoat website.</Text>
 
             {boats.length === 0 ? (
               <Text style={styles.feedback}>No boats match these filters right now.</Text>
@@ -195,10 +196,22 @@ export default function HomeScreen() {
   );
 }
 
+const jb = {
+  canvas: "#f8fafc",
+  ink: "#0f172a",
+  muted: "#64748b",
+  border: "#e2e8f0",
+  panel: "#ffffff",
+  teal700: "#0f766e",
+  teal950: "#042f2e",
+  tealSoftBg: "rgba(204, 251, 241, 0.85)",
+  tealSoftBorder: "#99f6e4",
+};
+
 const styles = StyleSheet.create({
   banner: {
-    backgroundColor: "#ccfbf1",
-    borderColor: "#99f6e4",
+    backgroundColor: jb.tealSoftBg,
+    borderColor: jb.tealSoftBorder,
     borderRadius: 24,
     borderWidth: 1,
     flexDirection: "row",
@@ -207,26 +220,26 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   bannerCount: {
-    color: "#0f766e",
+    color: jb.teal700,
     fontSize: 14,
     fontWeight: "700",
   },
   bannerText: {
-    color: "#134e4a",
+    color: jb.teal950,
     flex: 1,
     fontSize: 14,
     marginRight: 12,
   },
   card: {
-    backgroundColor: "#ffffff",
-    borderColor: "#e2e8f0",
+    backgroundColor: jb.panel,
+    borderColor: jb.border,
     borderRadius: 28,
     borderWidth: 1,
     gap: 18,
     padding: 20,
   },
   cardDescription: {
-    color: "#475569",
+    color: jb.muted,
     fontSize: 14,
     lineHeight: 21,
   },
@@ -240,7 +253,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   cardTitle: {
-    color: "#020617",
+    color: jb.ink,
     fontSize: 24,
     fontWeight: "700",
   },
@@ -250,18 +263,18 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   eyebrow: {
-    color: "#0f766e",
+    color: jb.teal700,
     fontSize: 12,
     fontWeight: "700",
     letterSpacing: 1.6,
     textTransform: "uppercase",
   },
   feedback: {
-    backgroundColor: "#ffffff",
-    borderColor: "#e2e8f0",
+    backgroundColor: jb.panel,
+    borderColor: jb.border,
     borderRadius: 22,
     borderWidth: 1,
-    color: "#475569",
+    color: jb.muted,
     fontSize: 15,
     overflow: "hidden",
     padding: 18,
@@ -272,28 +285,35 @@ const styles = StyleSheet.create({
     color: "#be123c",
   },
   hero: {
-    backgroundColor: "#0f172a",
+    backgroundColor: jb.panel,
+    borderColor: "rgba(255,255,255,0.7)",
     borderRadius: 32,
+    borderWidth: 1,
     gap: 10,
     padding: 24,
+    shadowColor: "#0f172a",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 4,
   },
   heroBody: {
-    color: "#cbd5e1",
+    color: jb.muted,
     fontSize: 15,
     lineHeight: 24,
   },
   heroTitle: {
-    color: "#f8fafc",
-    fontSize: 34,
+    color: jb.ink,
+    fontSize: 28,
     fontWeight: "700",
-    lineHeight: 40,
+    lineHeight: 34,
   },
   input: {
-    backgroundColor: "#f8fafc",
-    borderColor: "#cbd5e1",
+    backgroundColor: jb.canvas,
+    borderColor: jb.border,
     borderRadius: 18,
     borderWidth: 1,
-    color: "#0f172a",
+    color: jb.ink,
     fontSize: 15,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -302,18 +322,18 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   listSubtitle: {
-    color: "#64748b",
+    color: jb.muted,
     fontSize: 14,
     lineHeight: 21,
     marginBottom: 4,
   },
   listTitle: {
-    color: "#0f172a",
+    color: jb.ink,
     fontSize: 28,
     fontWeight: "700",
   },
   metricBox: {
-    backgroundColor: "#f8fafc",
+    backgroundColor: jb.canvas,
     borderRadius: 18,
     gap: 6,
     padding: 14,
@@ -322,33 +342,33 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   metricHint: {
-    color: "#64748b",
+    color: jb.muted,
     fontSize: 13,
     lineHeight: 18,
   },
   metricLabel: {
-    color: "#64748b",
+    color: jb.muted,
     fontSize: 11,
     fontWeight: "700",
     letterSpacing: 1.4,
     textTransform: "uppercase",
   },
   metricValue: {
-    color: "#0f172a",
+    color: jb.ink,
     fontSize: 15,
     fontWeight: "600",
     lineHeight: 22,
   },
   panel: {
-    backgroundColor: "#ffffff",
-    borderColor: "#e2e8f0",
+    backgroundColor: jb.panel,
+    borderColor: jb.border,
     borderRadius: 28,
     borderWidth: 1,
     gap: 16,
     padding: 20,
   },
   panelTitle: {
-    color: "#0f172a",
+    color: jb.ink,
     fontSize: 14,
     fontWeight: "700",
     letterSpacing: 1.5,
@@ -367,7 +387,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   screen: {
-    backgroundColor: "#f1f5f9",
+    backgroundColor: jb.canvas,
     flex: 1,
   },
   seatActions: {
@@ -385,14 +405,14 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   seatChipActive: {
-    backgroundColor: "#0f766e",
+    backgroundColor: jb.teal700,
     color: "#f8fafc",
   },
   seatStepper: {
     gap: 4,
   },
   toggleBody: {
-    color: "#64748b",
+    color: jb.muted,
     fontSize: 13,
     lineHeight: 18,
   },
@@ -403,8 +423,8 @@ const styles = StyleSheet.create({
   },
   toggleRow: {
     alignItems: "center",
-    backgroundColor: "#f8fafc",
-    borderColor: "#e2e8f0",
+    backgroundColor: jb.canvas,
+    borderColor: jb.border,
     borderRadius: 18,
     borderWidth: 1,
     flexDirection: "row",
@@ -412,7 +432,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   toggleTitle: {
-    color: "#0f172a",
+    color: jb.ink,
     fontSize: 15,
     fontWeight: "600",
   },

@@ -6,6 +6,14 @@ export default {
   ],
   theme: {
     extend: {
+      colors: {
+        jb: {
+          canvas: "#f8fafc",
+          sage: "#eef6f4",
+          ink: "#0f172a",
+          muted: "#64748b",
+        },
+      },
       fontFamily: {
         sans: [
           "system-ui",

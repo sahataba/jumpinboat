@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { Result } from "@effect-atom/atom-react";
-import { Cause } from "effect";
 import Link from "next/link";
 
 import { usePublicBoatFilters, usePublicBoatList } from "../lib/public-boats";
-import type { BoatListingSummary, PublicBoatListFilters } from "@jumpinboat/shared";
+import {
+  type BoatListingSummary,
+  type PublicBoatListFilters,
+  userFacingListLoadError,
+} from "@jumpinboat/shared";
 
 const formatRouteSummary = (boat: BoatListingSummary) => {
   const start = boat.translation.startLocationLabel ?? "Departure";
@@ -84,6 +87,7 @@ const BoatCard = ({ boat }: { boat: BoatListingSummary }) => (
 
 export default function HomePage() {
   const [isHydrated, setIsHydrated] = useState(false);
+  const [showCoordinateFilters, setShowCoordinateFilters] = useState(false);
   const { filters, setFilters } = usePublicBoatFilters();
   const { activeFilterCount, result } = usePublicBoatList();
   const updateFilters = (
@@ -97,8 +101,8 @@ export default function HomePage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(45,212,191,0.2),_transparent_35%),linear-gradient(180deg,_#f8fafc_0%,_#eef6f4_45%,_#ffffff_100%)] text-slate-900">
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-6 py-10 md:px-10 lg:px-12 lg:py-14">
+    <main className="jb-page">
+      <section className="jb-section">
         <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
           <div className="space-y-5">
             <p className="text-sm font-semibold uppercase tracking-[0.34em] text-teal-700">
@@ -109,8 +113,8 @@ export default function HomePage() {
                 Licensed skipper-led boat transport — book routes on the map.
               </h1>
               <p className="max-w-2xl text-base leading-7 text-slate-600 md:text-lg">
-                JumpInBoat MVP: PostgreSQL-backed listings, OpenStreetMap discovery, pay on arrival,
-                weather-risk stub, English/Croatian content, and booking requests with owner accept/decline.
+                Browse licensed skippers, see routes on the map, and pay on arrival. Listings are available
+                in English and Croatian. Send a booking request and the captain confirms or declines.
               </p>
               <div className="flex flex-wrap gap-3 pt-2">
                 <Link
@@ -192,60 +196,71 @@ export default function HomePage() {
                 </button>
               </div>
 
-              <label className="block">
-                <span className="mb-2 block text-sm font-medium text-slate-700">
-                  Route search (start / end lat,lng, optional)
-                </span>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <input
-                    placeholder="Start lat"
-                    className="rounded-xl border border-slate-200 px-2 py-2"
-                    onBlur={(e) => {
-                      const v = e.target.value ? Number(e.target.value) : undefined;
-                      updateFilters((c) => ({ ...c, routeStartLat: v }));
-                    }}
-                  />
-                  <input
-                    placeholder="Start lng"
-                    className="rounded-xl border border-slate-200 px-2 py-2"
-                    onBlur={(e) => {
-                      const v = e.target.value ? Number(e.target.value) : undefined;
-                      updateFilters((c) => ({ ...c, routeStartLng: v }));
-                    }}
-                  />
-                  <input
-                    placeholder="End lat"
-                    className="rounded-xl border border-slate-200 px-2 py-2"
-                    onBlur={(e) => {
-                      const v = e.target.value ? Number(e.target.value) : undefined;
-                      updateFilters((c) => ({ ...c, routeEndLat: v }));
-                    }}
-                  />
-                  <input
-                    placeholder="End lng"
-                    className="rounded-xl border border-slate-200 px-2 py-2"
-                    onBlur={(e) => {
-                      const v = e.target.value ? Number(e.target.value) : undefined;
-                      updateFilters((c) => ({ ...c, routeEndLng: v }));
-                    }}
-                  />
-                </div>
+              <div className="border-t border-slate-200 pt-4">
                 <button
                   type="button"
-                  className="mt-2 text-xs text-teal-700 underline"
-                  onClick={() =>
-                    updateFilters((c) => ({
-                      ...c,
-                      routeStartLat: undefined,
-                      routeStartLng: undefined,
-                      routeEndLat: undefined,
-                      routeEndLng: undefined,
-                    }))
-                  }
+                  onClick={() => setShowCoordinateFilters((v) => !v)}
+                  className="text-sm font-medium text-teal-800 underline decoration-teal-300 underline-offset-2"
                 >
-                  Clear route filter
+                  {showCoordinateFilters ? "Hide" : "Show"} advanced location filters
                 </button>
-              </label>
+                {showCoordinateFilters ? (
+                  <label className="mt-3 block">
+                    <span className="mb-2 block text-sm font-medium text-slate-700">
+                      Refine by coordinates (start and end points)
+                    </span>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <input
+                        placeholder="Start latitude"
+                        className="rounded-xl border border-slate-200 px-2 py-2"
+                        onBlur={(e) => {
+                          const v = e.target.value ? Number(e.target.value) : undefined;
+                          updateFilters((c) => ({ ...c, routeStartLat: v }));
+                        }}
+                      />
+                      <input
+                        placeholder="Start longitude"
+                        className="rounded-xl border border-slate-200 px-2 py-2"
+                        onBlur={(e) => {
+                          const v = e.target.value ? Number(e.target.value) : undefined;
+                          updateFilters((c) => ({ ...c, routeStartLng: v }));
+                        }}
+                      />
+                      <input
+                        placeholder="End latitude"
+                        className="rounded-xl border border-slate-200 px-2 py-2"
+                        onBlur={(e) => {
+                          const v = e.target.value ? Number(e.target.value) : undefined;
+                          updateFilters((c) => ({ ...c, routeEndLat: v }));
+                        }}
+                      />
+                      <input
+                        placeholder="End longitude"
+                        className="rounded-xl border border-slate-200 px-2 py-2"
+                        onBlur={(e) => {
+                          const v = e.target.value ? Number(e.target.value) : undefined;
+                          updateFilters((c) => ({ ...c, routeEndLng: v }));
+                        }}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      className="mt-2 text-xs text-teal-700 underline"
+                      onClick={() =>
+                        updateFilters((c) => ({
+                          ...c,
+                          routeStartLat: undefined,
+                          routeStartLng: undefined,
+                          routeEndLat: undefined,
+                          routeEndLng: undefined,
+                        }))
+                      }
+                    >
+                      Clear location filter
+                    </button>
+                  </label>
+                ) : null}
+              </div>
 
               <label className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
                 <div>
@@ -292,11 +307,8 @@ export default function HomePage() {
         </div>
 
         <div className="flex items-center justify-between gap-4 rounded-[28px] border border-teal-100 bg-teal-50/70 px-5 py-4 text-sm text-teal-950">
-          <p>
-            Maps use OpenStreetMap tiles. Listings load from the API / Postgres after `npm run db:migrate` and
-            `npm run db:seed` in `packages/api`.
-          </p>
-          <p className="rounded-full bg-white px-3 py-1 font-medium text-teal-700">
+          <p>Listings update as captains publish routes and availability.</p>
+          <p className="shrink-0 rounded-full bg-white px-3 py-1 font-medium text-teal-700">
             {activeFilterCount} active filter{activeFilterCount === 1 ? "" : "s"}
           </p>
         </div>
@@ -314,7 +326,7 @@ export default function HomePage() {
             ))
             .onFailure((cause) => (
               <section className="rounded-[32px] border border-rose-200 bg-rose-50 p-8 text-sm text-rose-700 shadow-[0_16px_60px_rgba(15,23,42,0.08)]">
-                {Cause.pretty(cause as Cause.Cause<unknown>)}
+                {userFacingListLoadError(cause)}
               </section>
             ))
             .onSuccess((boats: ReadonlyArray<BoatListingSummary>) => (
@@ -327,7 +339,7 @@ export default function HomePage() {
                     </h2>
                   </div>
                   <p className="max-w-md text-right text-sm leading-6 text-slate-500">
-                    The backend filters query text, cargo support, and free seats before the list reaches the page.
+                    Results match your search, cargo filter, seat count, and location options.
                   </p>
                 </div>
 

@@ -5,6 +5,14 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-nati
 
 import { getApiBaseUrl } from "../../lib/api-base";
 
+const jb = {
+  canvas: "#f8fafc",
+  ink: "#0f172a",
+  muted: "#64748b",
+  teal700: "#0f766e",
+  rose600: "#e11d48",
+};
+
 export default function BoatDetailScreen() {
   const { boatId } = useLocalSearchParams<{ boatId: string }>();
   const router = useRouter();
@@ -29,10 +37,10 @@ export default function BoatDetailScreen() {
 
   if (err) {
     return (
-      <View style={{ padding: 24 }}>
-        <Text style={{ color: "#b91c1c" }}>{err}</Text>
+      <View style={{ flex: 1, backgroundColor: jb.canvas, padding: 24 }}>
+        <Text style={{ color: jb.rose600 }}>{err}</Text>
         <Pressable onPress={() => router.back()}>
-          <Text style={{ marginTop: 16, color: "#0f766e" }}>Back</Text>
+          <Text style={{ marginTop: 16, color: jb.teal700, fontWeight: "600" }}>Back</Text>
         </Pressable>
       </View>
     );
@@ -40,27 +48,28 @@ export default function BoatDetailScreen() {
 
   if (!boat) {
     return (
-      <View style={{ padding: 48, alignItems: "center" }}>
-        <ActivityIndicator />
+      <View style={{ flex: 1, backgroundColor: jb.canvas, padding: 48, alignItems: "center" }}>
+        <ActivityIndicator color={jb.teal700} />
       </View>
     );
   }
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 20, gap: 12 }}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: jb.canvas }}
+      contentContainerStyle={{ padding: 20, gap: 12, paddingBottom: 40 }}
+    >
       <Pressable onPress={() => router.back()}>
-        <Text style={{ color: "#0f766e", marginBottom: 8 }}>← Back</Text>
+        <Text style={{ color: jb.teal700, marginBottom: 8, fontWeight: "600" }}>← Back</Text>
       </Pressable>
-      <Text style={{ fontSize: 28, fontWeight: "700", color: "#0f172a" }}>
-        {boat.translation.name}
+      <Text style={{ fontSize: 28, fontWeight: "700", color: jb.ink }}>{boat.translation.name}</Text>
+      <Text style={{ color: jb.muted, lineHeight: 22 }}>{boat.translation.description}</Text>
+      <Text style={{ color: jb.muted, fontSize: 13 }}>
+        {boat.translation.startLocationLabel} → {boat.translation.endLocationLabel} · licensed skipper
+        included
       </Text>
-      <Text style={{ color: "#475569", lineHeight: 22 }}>{boat.translation.description}</Text>
-      <Text style={{ color: "#64748b", fontSize: 13 }}>
-        {boat.translation.startLocationLabel} → {boat.translation.endLocationLabel} · skipper
-        included · OSM route on web
-      </Text>
-      <Text style={{ color: "#0f766e", fontSize: 13 }}>
-        Use the web app for map + booking (Expo map wiring optional follow-up).
+      <Text style={{ color: jb.teal700, fontSize: 14, lineHeight: 22, marginTop: 4 }}>
+        For the full route map and booking, open this listing on the JumpInBoat website.
       </Text>
     </ScrollView>
   );

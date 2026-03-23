@@ -66,28 +66,26 @@ export default function OwnerBookingsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-amber-50/40 px-6 py-10 text-slate-900">
-      <div className="mx-auto max-w-2xl space-y-6">
+    <main className="jb-page">
+      <div className="jb-section-narrow">
         <Link href="/" className="text-sm text-teal-700 underline">
           ← Discovery
         </Link>
         <h1 className="text-3xl font-semibold">Owner booking inbox</h1>
         <p className="text-sm text-slate-600">
-          New requests log a stub notification (email/WhatsApp integration placeholder).
+          New requests appear here. Email notifications are coming soon—you’ll see requests in this inbox for
+          now.
         </p>
         {err ? <p className="text-rose-600">{err}</p> : null}
         {msg ? <p className="text-teal-800">{msg}</p> : null}
         {items === null ? <p>Loading…</p> : null}
         <ul className="space-y-4">
           {(items ?? []).map((row) => (
-            <li
-              key={row.booking.id}
-              className="rounded-2xl border border-amber-200 bg-white p-4 shadow-sm"
-            >
+            <li key={row.booking.id} className="jb-card">
               <p className="font-medium">{row.customerEmail}</p>
               <p className="text-sm text-slate-600">
-                Boat {row.boatId.slice(0, 8)}… · {row.booking.passengerCount} pax ·{" "}
-                {row.booking.status}
+                Booking ref {row.boatId.slice(0, 8)}… · {row.booking.passengerCount}{" "}
+                {row.booking.passengerCount === 1 ? "passenger" : "passengers"} · {row.booking.status}
               </p>
               <p className="text-sm text-slate-600">
                 {row.booking.price.totalPrice.amount} {row.booking.price.totalPrice.currency}

@@ -3,7 +3,7 @@
 import type { BoatListingSummary } from "@jumpinboat/shared";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 import { BoatRouteMap } from "../../../components/BoatRouteMap";
 import { readPersistedAuthSession } from "../../../lib/auth";
@@ -29,7 +29,7 @@ export default function BoatDetailPage() {
   const [selectedStops, setSelectedStops] = useState<Record<string, boolean>>({});
   const [cargoKg, setCargoKg] = useState(0);
   const [cargoPk, setCargoPk] = useState(0);
-  const [bookMsg, setBookMsg] = useState("");
+  const [bookFeedback, setBookFeedback] = useState<ReactNode>(null);
 
   const load = useCallback(async () => {
     if (!boatId) return;
@@ -62,14 +62,21 @@ export default function BoatDetailPage() {
   };
 
   const submitBooking = async () => {
-    setBookMsg("");
+    setBookFeedback(null);
     const session = readPersistedAuthSession();
     if (!session) {
-      setBookMsg("Sign in first (auth page) with an account that can book.");
+      setBookFeedback(
+        <>
+          Sign in to request a booking.{" "}
+          <Link href="/auth" className="font-medium text-teal-800 underline">
+            Sign in
+          </Link>
+        </>,
+      );
       return;
     }
     if (!boat || !departureId) {
-      setBookMsg("Select a departure.");
+      setBookFeedback("Select a departure.");
       return;
     }
     const selectedStopsPayload = Object.entries(selectedStops)
@@ -98,21 +105,21 @@ export default function BoatDetailPage() {
         const j = await r.json().catch(() => ({}));
         throw new Error(j.error ?? r.statusText);
       }
-      setBookMsg("Booking request sent. Pay on arrival. Check My bookings.");
+      setBookFeedback("Booking request sent. Pay on arrival. Check My bookings.");
     } catch (e) {
-      setBookMsg(e instanceof Error ? e.message : "Booking failed");
+      setBookFeedback(e instanceof Error ? e.message : "Booking failed");
     }
   };
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-slate-50 p-8 text-slate-600">Loading…</main>
+      <main className="jb-page p-8 text-slate-600">Loading…</main>
     );
   }
 
   if (error || !boat) {
     return (
-      <main className="min-h-screen bg-slate-50 p-8">
+      <main className="jb-page p-8">
         <p className="text-rose-600">{error ?? "Not found"}</p>
         <Link href="/" className="mt-4 inline-block text-teal-700 underline">
           Back to listings
@@ -122,15 +129,15 @@ export default function BoatDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,_#f8fafc_0%,_#ecfeff_100%)] text-slate-900">
-      <div className="mx-auto max-w-4xl space-y-8 px-6 py-10">
+    <main className="jb-page">
+      <div className="jb-section-detail">
         <Link href="/" className="text-sm font-medium text-teal-800 underline">
           ← All listings
         </Link>
 
         <header className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-teal-700">
-            Skippered transport · OpenStreetMap route
+            Licensed captain · scheduled departures
           </p>
           <h1 className="text-4xl font-semibold tracking-tight">{boat.translation.name}</h1>
           <p className="text-slate-600">{boat.translation.description}</p>
@@ -156,7 +163,10 @@ export default function BoatDetailPage() {
             >
               {deps.map((d) => (
                 <option key={d.id} value={d.id}>
-                  {new Date(d.departureTimeUtc).toLocaleString()} (UTC stored)
+                  {new Date(d.departureTimeUtc).toLocaleString(undefined, {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}
                 </option>
               ))}
             </select>
@@ -232,7 +242,7 @@ export default function BoatDetailPage() {
           >
             Request booking
           </button>
-          {bookMsg ? <p className="mt-3 text-sm text-teal-800">{bookMsg}</p> : null}
+          {bookFeedback ? <p className="mt-3 text-sm text-teal-800">{bookFeedback}</p> : null}
         </section>
       </div>
     </main>
