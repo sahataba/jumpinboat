@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Result } from "@effect-atom/atom-react";
 import { Cause } from "effect";
+import Link from "next/link";
 
 import { usePublicBoatFilters, usePublicBoatList } from "../lib/public-boats";
 import type { BoatListingSummary, PublicBoatListFilters } from "@jumpinboat/shared";
@@ -108,6 +109,17 @@ export default function HomePage() {
                 This slice validates customer-side discovery on web: shared contracts,
                 backend filtering, and reactive state flowing through Effect Atom.
               </p>
+              <div className="flex flex-wrap gap-3 pt-2">
+                <Link
+                  href="/auth"
+                  className="inline-flex items-center rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+                >
+                  Open owner auth
+                </Link>
+                <span className="inline-flex items-center rounded-full border border-teal-200 bg-white/80 px-4 py-3 text-sm text-teal-800">
+                  Sign up and sign in now run against the API slice
+                </span>
+              </div>
             </div>
           </div>
 

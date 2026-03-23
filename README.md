@@ -39,6 +39,8 @@ npm run build
 ## API
 
 - Dev: `npm run dev:api` (default port 4000, set `PORT` to override)
+- Set `DATABASE_URL` before starting the API; auth now persists users in Postgres instead of in memory
+- Set `JWT_SECRET` to override the local development token secret
 - DB: `npm run db:generate`, `npm run db:migrate`, `npm run db:seed` (from `packages/api`)
 
 ## Web

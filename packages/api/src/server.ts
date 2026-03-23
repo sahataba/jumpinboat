@@ -1,39 +1,21 @@
-import http from "node:http";
+import { createServer } from "node:http";
 
-import { searchPublicBoatListings, parsePublicBoatListFilters } from "./public-boats.js";
+import * as HttpServer from "@effect/platform/HttpServer";
+import * as HttpMiddleware from "@effect/platform/HttpMiddleware";
+import { NodeContext, NodeHttpServer, NodeRuntime } from "@effect/platform-node";
+import { Layer } from "effect";
+
+import { app } from "./http/router.js";
+import { AuthServiceLive } from "./services/auth-service.js";
+import { PublicBoatsService } from "./services/public-boats-service.js";
 
 const port = Number(process.env.PORT) || 4000;
 
-const server = http.createServer((req, res) => {
-  const requestUrl = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
+const ApiLive = HttpServer.serve(app, HttpMiddleware.logger).pipe(
+  Layer.provide(AuthServiceLive),
+  Layer.provide(PublicBoatsService.Live),
+  Layer.provide(NodeContext.layer),
+  Layer.provide(NodeHttpServer.layer(createServer, { port })),
+);
 
-  res.setHeader("Access-Control-Allow-Origin", "*");
-
-  if (req.method === "GET" && requestUrl.pathname === "/api/health") {
-    res.statusCode = 200;
-    res.setHeader("Content-Type", "text/plain; charset=utf-8");
-    res.end("ok");
-    return;
-  }
-
-  if (req.method === "GET" && requestUrl.pathname === "/api/boats/search") {
-    const filters = parsePublicBoatListFilters(requestUrl);
-    const payload = {
-      items: searchPublicBoatListings(filters),
-    };
-
-    res.statusCode = 200;
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    res.end(JSON.stringify(payload));
-    return;
-  }
-
-  res.statusCode = 404;
-  res.setHeader("Content-Type", "text/plain; charset=utf-8");
-  res.end("Not Found");
-});
-
-server.listen(port, () => {
-  // eslint-disable-next-line no-console
-  console.log(`API server listening on http://localhost:${port}`);
-});
+NodeRuntime.runMain(Layer.launch(ApiLive));
