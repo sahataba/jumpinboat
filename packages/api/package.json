@@ -2,26 +2,33 @@
   "name": "@jumpinboat/api",
   "version": "0.1.0",
   "type": "module",
+  "exports": {
+    "./next-handlers": {
+      "types": "./dist/next-handlers.d.ts",
+      "import": "./dist/next-handlers.js"
+    },
+    "./next-runtime": {
+      "types": "./dist/next-runtime.d.ts",
+      "import": "./dist/next-runtime.js"
+    }
+  },
   "scripts": {
-    "dev": "node --env-file=.env --import tsx --watch src/server.ts",
+    "dev": "tsc --watch --preserveWatchOutput",
     "build": "tsc",
-    "start": "node --env-file=.env dist/server.js",
     "lint": "tsc --noEmit",
     "db:generate": "node --env-file=.env ../../node_modules/drizzle-kit/bin.cjs generate --config=drizzle.config.ts",
     "db:migrate": "node --env-file=.env --import tsx src/db/migrate.ts",
     "db:seed": "node --env-file=.env --import tsx src/db/seed.ts"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
     "@jumpinboat/shared": "*",
     "@effect/platform": "^0.94.5",
     "@effect/platform-node": "^0.104.1",
     "argon2": "^0.44.0",
     "drizzle-orm": "^0.44.5",
     "effect": "^3.19.19",
-    "find-my-way-ts": "^0.1.6",
     "jose": "^6.1.0",
-    "msgpackr": "^1.11.4",
-    "multipasta": "^0.2.7",
     "pg": "^8.16.3"
   },
   "devDependencies": {

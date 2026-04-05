@@ -5,7 +5,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:api": "npm run dev --workspace=packages/api",
+    "dev:api": "npm run dev --workspace=packages/web",
     "dev:web": "npm run dev --workspace=packages/web",
     "dev:mobile": "npm run start --workspace=packages/mobile",
     "build": "npm run build --workspace=packages/shared && npm run build --workspace=packages/api && npm run build --workspace=packages/web",

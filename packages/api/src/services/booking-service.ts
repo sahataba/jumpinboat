@@ -6,7 +6,7 @@ import { Context, Effect, Layer } from "effect";
 import type { CreateBookingRequest, Booking, BookingPriceBreakdown } from "@jumpinboat/shared";
 
 import { ApiError } from "../api-error.js";
-import { db } from "../db/client.js";
+import { getDb } from "../db/client.js";
 import {
   boatDepartures,
   boatRouteStops,
@@ -50,7 +50,7 @@ const computeStopTotal = (
 const createBooking = (customerId: string, body: CreateBookingRequest) =>
   Effect.tryPromise({
     try: async () => {
-      const [dep] = await db
+      const [dep] = await getDb()
         .select()
         .from(boatDepartures)
         .where(eq(boatDepartures.id, body.departureId))
@@ -60,7 +60,7 @@ const createBooking = (customerId: string, body: CreateBookingRequest) =>
         throw new ApiError(404, "Departure not found");
       }
 
-      const [routeRow] = await db
+      const [routeRow] = await getDb()
         .select()
         .from(boatRoutes)
         .where(eq(boatRoutes.id, dep.routeId))
@@ -70,7 +70,7 @@ const createBooking = (customerId: string, body: CreateBookingRequest) =>
         throw new ApiError(500, "Route missing");
       }
 
-      const [boatRow] = await db
+      const [boatRow] = await getDb()
         .select()
         .from(boats)
         .where(eq(boats.id, body.boatId))
@@ -80,7 +80,7 @@ const createBooking = (customerId: string, body: CreateBookingRequest) =>
         throw new ApiError(400, "Boat does not match departure");
       }
 
-      const stops = await db
+      const stops = await getDb()
         .select()
         .from(boatRouteStops)
         .where(eq(boatRouteStops.routeId, routeRow.id));
@@ -96,7 +96,7 @@ const createBooking = (customerId: string, body: CreateBookingRequest) =>
         }
       }
 
-      const existing = await db
+      const existing = await getDb()
         .select({ p: bookings.passengerCount })
         .from(bookings)
         .where(
@@ -152,7 +152,7 @@ const createBooking = (customerId: string, body: CreateBookingRequest) =>
 
       const bookingId = randomUUID();
 
-      await db.insert(bookings).values({
+      await getDb().insert(bookings).values({
         id: bookingId,
         departureId: dep.id,
         boatId: boatRow.id,
@@ -169,7 +169,7 @@ const createBooking = (customerId: string, body: CreateBookingRequest) =>
       });
 
       for (const sel of body.selectedStops) {
-        await db.insert(bookingStops).values({
+        await getDb().insert(bookingStops).values({
           bookingId,
           stopId: sel.stopId,
         });
@@ -207,7 +207,7 @@ const createBooking = (customerId: string, body: CreateBookingRequest) =>
 const listMine = (customerId: string) =>
   Effect.tryPromise({
     try: async () => {
-      const rows = await db
+      const rows = await getDb()
         .select()
         .from(bookings)
         .where(eq(bookings.customerId, customerId))
@@ -221,7 +221,7 @@ const listMine = (customerId: string) =>
 const listOwnerIncoming = (ownerId: string) =>
   Effect.tryPromise({
     try: async () => {
-      const rows = await db
+      const rows = await getDb()
         .select({
           b: bookings,
           customerEmail: users.email,
@@ -270,7 +270,7 @@ const setBookingStatus = (
 ) =>
   Effect.tryPromise({
     try: async () => {
-      const [row] = await db
+      const [row] = await getDb()
         .select()
         .from(bookings)
         .innerJoin(boats, eq(bookings.boatId, boats.id))
@@ -285,7 +285,7 @@ const setBookingStatus = (
         throw new ApiError(409, "Booking is no longer pending");
       }
 
-      await db
+      await getDb()
         .update(bookings)
         .set({ status, updatedAt: new Date() })
         .where(eq(bookings.id, bookingId));

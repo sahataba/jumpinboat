@@ -9,7 +9,7 @@ import type {
   Stop,
 } from "@jumpinboat/shared";
 
-import { db } from "./client.js";
+import { getDb } from "./client.js";
 import {
   boatDepartures,
   boatRouteStops,
@@ -145,7 +145,7 @@ const weatherStubPercent = (lat: number, lng: number): number => {
 export async function searchBoatListingSummaries(
   filters: PublicBoatSearchFilters,
 ): Promise<ReadonlyArray<BoatListingSummary>> {
-  const activeBoats = await db
+  const activeBoats = await getDb()
     .select()
     .from(boats)
     .where(eq(boats.isActive, true));
@@ -156,7 +156,7 @@ export async function searchBoatListingSummaries(
 
   const boatIds = activeBoats.map((b) => b.id);
 
-  const routes = await db
+  const routes = await getDb()
     .select()
     .from(boatRoutes)
     .where(inArray(boatRoutes.boatId, boatIds));
@@ -165,13 +165,13 @@ export async function searchBoatListingSummaries(
   const stops =
     routeIds.length === 0
       ? []
-      : await db
+      : await getDb()
           .select()
           .from(boatRouteStops)
           .where(inArray(boatRouteStops.routeId, routeIds))
           .orderBy(boatRouteStops.orderIndex);
 
-  const translations = await db
+  const translations = await getDb()
     .select()
     .from(boatTranslations)
     .where(inArray(boatTranslations.boatId, boatIds));
@@ -202,7 +202,7 @@ export async function searchBoatListingSummaries(
   const departures =
     routeIds.length === 0
       ? []
-      : await db
+      : await getDb()
           .select()
           .from(boatDepartures)
           .where(
@@ -217,7 +217,7 @@ export async function searchBoatListingSummaries(
   const bookingRows =
     depIds.length === 0
       ? []
-      : await db
+      : await getDb()
           .select({
             departureId: bookings.departureId,
             passengers: bookings.passengerCount,
@@ -394,7 +394,7 @@ export async function listDeparturesForBoat(
     status: string;
   }>
 > {
-  const [routeRow] = await db
+  const [routeRow] = await getDb()
     .select({ id: boatRoutes.id })
     .from(boatRoutes)
     .innerJoin(boats, eq(boatRoutes.boatId, boats.id))
@@ -406,7 +406,7 @@ export async function listDeparturesForBoat(
   }
 
   const now = new Date();
-  return db
+  return getDb()
     .select({
       id: boatDepartures.id,
       routeId: boatDepartures.routeId,

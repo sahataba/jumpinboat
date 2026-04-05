@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 
 import type { User, UserRolePrimary } from "@jumpinboat/shared";
 
-import { db } from "../client.js";
+import { getDb } from "../client.js";
 import { users } from "../schema.js";
 
 export type UserRecord = typeof users.$inferSelect;
@@ -28,7 +28,7 @@ const toUser = (
 
 export const UserRepository = {
   async create(input: CreateUserRecord): Promise<User> {
-    const [row] = await db
+    const [row] = await getDb()
       .insert(users)
       .values({
         id: input.id,
@@ -38,19 +38,13 @@ export const UserRepository = {
         canBook: input.canBook,
         canListBoats: input.canListBoats,
       })
-      .returning({
-        id: users.id,
-        email: users.email,
-        rolePrimary: users.rolePrimary,
-        canBook: users.canBook,
-        canListBoats: users.canListBoats,
-      });
+      .returning();
 
     return toUser(row);
   },
 
   async findRecordByEmail(email: string): Promise<UserRecord | null> {
-    const [row] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    const [row] = await getDb().select().from(users).where(eq(users.email, email)).limit(1);
     return row ?? null;
   },
 
@@ -60,7 +54,7 @@ export const UserRepository = {
   },
 
   async findById(id: string): Promise<User | null> {
-    const [row] = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    const [row] = await getDb().select().from(users).where(eq(users.id, id)).limit(1);
     return row ? toUser(row) : null;
   },
 
@@ -68,7 +62,7 @@ export const UserRepository = {
     id: string,
     caps: { canBook?: boolean; canListBoats?: boolean },
   ): Promise<User | null> {
-    const [row] = await db
+    const [row] = await getDb()
       .update(users)
       .set({
         ...(caps.canBook !== undefined ? { canBook: caps.canBook } : {}),
@@ -76,13 +70,7 @@ export const UserRepository = {
         updatedAt: new Date(),
       })
       .where(eq(users.id, id))
-      .returning({
-        id: users.id,
-        email: users.email,
-        rolePrimary: users.rolePrimary,
-        canBook: users.canBook,
-        canListBoats: users.canListBoats,
-      });
+      .returning();
     return row ? toUser(row) : null;
   },
 };

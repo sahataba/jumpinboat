@@ -1,8 +1,16 @@
 import { Platform } from "react-native";
 
+const devLoopback = () =>
+  Platform.OS === "android" ? "http://10.0.2.2:3000" : "http://localhost:3000";
+
+/**
+ * Base URL for `/api/*` (same host as the Next.js app in production).
+ * Set `EXPO_PUBLIC_API_URL` in EAS / `.env` for device builds; dev uses Metro machine loopback → Next on 3000.
+ */
 export const getApiBaseUrl = () => {
-  if (Platform.OS === "android") {
-    return "http://10.0.2.2:4000";
+  const fromEnv = process.env.EXPO_PUBLIC_API_URL;
+  if (typeof fromEnv === "string" && fromEnv.length > 0) {
+    return fromEnv.replace(/\/$/, "");
   }
-  return "http://localhost:4000";
+  return devLoopback();
 };

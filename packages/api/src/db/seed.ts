@@ -1,7 +1,7 @@
 import argon2 from "argon2";
 import { eq } from "drizzle-orm";
 
-import { db } from "./client.js";
+import { getDb } from "./client.js";
 import {
   boatDepartures,
   boatRouteStops,
@@ -15,7 +15,7 @@ const OWNER_ID = "10000000-0000-4000-8000-000000000001";
 const OWNER_EMAIL = "owner@jumpinboat.local";
 
 async function main() {
-  const [existing] = await db.select().from(boats).limit(1);
+  const [existing] = await getDb().select().from(boats).limit(1);
   if (existing) {
     console.log("Database already has boats; skip seed.");
     return;
@@ -23,7 +23,7 @@ async function main() {
 
   const passwordHash = await argon2.hash("password123");
 
-  await db.insert(users).values({
+  await getDb().insert(users).values({
     id: OWNER_ID,
     email: OWNER_EMAIL,
     passwordHash,
@@ -236,7 +236,7 @@ async function main() {
   ];
 
   for (const b of data) {
-    await db.insert(boats).values({
+    await getDb().insert(boats).values({
       id: b.id,
       ownerId: OWNER_ID,
       slug: b.slug,
@@ -251,7 +251,7 @@ async function main() {
       isActive: true,
     });
 
-    await db.insert(boatTranslations).values({
+    await getDb().insert(boatTranslations).values({
       boatId: b.id,
       locale: b.translation.locale,
       name: b.translation.name,
@@ -261,7 +261,7 @@ async function main() {
       endLocationLabel: b.translation.endLocationLabel,
     });
 
-    await db.insert(boatRoutes).values({
+    await getDb().insert(boatRoutes).values({
       id: b.route.id,
       boatId: b.id,
       startLat: b.route.startLat,
@@ -275,7 +275,7 @@ async function main() {
     });
 
     for (const s of b.route.stops) {
-      await db.insert(boatRouteStops).values({
+      await getDb().insert(boatRouteStops).values({
         id: s.id,
         routeId: b.route.id,
         orderIndex: s.order,
@@ -286,7 +286,7 @@ async function main() {
     }
 
     for (let i = 1; i <= 5; i++) {
-      await db.insert(boatDepartures).values({
+      await getDb().insert(boatDepartures).values({
         routeId: b.route.id,
         departureTimeUtc: inDays(i + i * 0.1),
         status: "scheduled",
@@ -294,7 +294,7 @@ async function main() {
     }
   }
 
-  await db.insert(boatTranslations).values({
+  await getDb().insert(boatTranslations).values({
     boatId: "10000000-0000-4000-8000-000000000010",
     locale: "hr",
     name: "Lanterna jutarnji transfer",
