@@ -41,11 +41,11 @@ npm run build
 HTTP endpoints live in **`packages/web/app/api`** (Next.js Route Handlers) and call into **`packages/api`** (services, DB). There is no separate `listen()` server.
 
 - Dev: `npm run dev:web` or `npm run dev:api` → [http://localhost:3000](http://localhost:3000) (`/api/*` on the same origin)
-- Set `DATABASE_URL` (and `JWT_SECRET` for auth) in the environment used by Next (`packages/web`) and for CLI migrations in `packages/api`. On Vercel Postgres, the app can also read `POSTGRES_URL` automatically.
+- Set `DATABASE_URL` (and `JWT_SECRET` for auth) in the environment used by Next (`packages/web`) and for CLI migrations in `packages/api`. For Neon-backed Vercel projects, the app now prefers `JIB_POSTGRES_URL` / `JIB_DATABASE_URL` for runtime and `JIB_POSTGRES_URL_NON_POOLING` / `JIB_DATABASE_URL_UNPOOLED` for migrations.
 - **First-time DB:** from `packages/api` run `npm run db:migrate` then `npm run db:seed` (sample boats + departures + `owner@jumpinboat.local` / `password123`)
 - Other scripts: `npm run db:generate` (after schema edits), `npm run db:migrate`, `npm run db:seed`
 - **Production (e.g. Vercel):** set `DATABASE_URL`, `JWT_SECRET` on the web project. No `API_BASE_URL` rewrite is required for same-origin `/api`.
-- Vercel deploys now run DB migrations before the build via `npm run build:deploy`, which calls `packages/api`'s `db:migrate:deploy` and prefers a direct connection in this order: `DATABASE_URL_MIGRATE`, `POSTGRES_URL_NON_POOLING`, `DATABASE_URL`, then `POSTGRES_URL`.
+- Vercel deploys now run DB migrations before the build via `npm run build:deploy`, which calls `packages/api`'s `db:migrate:deploy` and prefers Neon direct-connection variables first: `JIB_POSTGRES_URL_NON_POOLING`, `JIB_DATABASE_URL_UNPOOLED`, `DATABASE_URL_MIGRATE`, `POSTGRES_URL_NON_POOLING`, `DATABASE_URL`, then `POSTGRES_URL`.
 
 ### MVP endpoints (high level)
 

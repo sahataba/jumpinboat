@@ -41,13 +41,15 @@ const toErrorDetails = (error: unknown) => {
 
 async function main() {
   const connectionString =
+    process.env.JIB_POSTGRES_URL_NON_POOLING ??
+    process.env.JIB_DATABASE_URL_UNPOOLED ??
     process.env.DATABASE_URL_MIGRATE ??
     process.env.POSTGRES_URL_NON_POOLING ??
     process.env.DATABASE_URL ??
     process.env.POSTGRES_URL;
   if (!connectionString) {
     throw new Error(
-      "DATABASE_URL_MIGRATE, POSTGRES_URL_NON_POOLING, DATABASE_URL, or POSTGRES_URL is required",
+      "JIB_POSTGRES_URL_NON_POOLING, JIB_DATABASE_URL_UNPOOLED, DATABASE_URL_MIGRATE, POSTGRES_URL_NON_POOLING, DATABASE_URL, or POSTGRES_URL is required",
     );
   }
 
