@@ -61,7 +61,9 @@ HTTP endpoints live in **`packages/web/app/api`** (Next.js Route Handlers) and c
 - Dev: `npm run dev:web` → http://localhost:3000
 - Build: `npm run build` then `npm run start` in `packages/web`
 - SSR / client fetches to `/api/*` use the same origin as the app (no proxy to another port). For absolute URLs in server components, set `NEXT_PUBLIC_APP_URL` or `NEXT_PUBLIC_API_BASE_URL` if needed.
-- Vercel: set the project Root Directory to `packages/web`. The app-level config in `packages/web/vercel.json` runs the repo-root build so `packages/shared` and `packages/api` are compiled before Next builds the web app. The Next config also traces `packages/api/dist` and `packages/shared/dist` from the monorepo root so serverless functions include those workspace files at runtime.
+- Vercel preferred setup: set the project Root Directory to `packages/web` and leave Output Directory at its default so Vercel uses `packages/web/.next`. The app-level config in `packages/web/vercel.json` runs the repo-root build so `packages/shared` and `packages/api` are compiled before Next builds the web app.
+- Vercel fallback for a repo-root project: the root `vercel.json` points Output Directory to `packages/web/.next`, which matches the workspace build output when the project is not imported with `packages/web` as its Root Directory.
+- The Next config traces `packages/api/dist` and `packages/shared/dist` from the monorepo root so serverless functions include those workspace files at runtime.
 
 ## Mobile
 
