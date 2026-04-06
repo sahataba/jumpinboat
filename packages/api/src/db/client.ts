@@ -10,10 +10,10 @@ import * as schema from "./schema.js";
 export type AppDatabase = NeonHttpDatabase<typeof schema> | NodePgDatabase<typeof schema>;
 
 const getDatabaseUrl = () => {
-  const databaseUrl = process.env.DATABASE_URL;
+  const databaseUrl = process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
 
   if (!databaseUrl) {
-    throw new Error("DATABASE_URL is required for server database access");
+    throw new Error("DATABASE_URL (or POSTGRES_URL) is required for server database access");
   }
 
   return databaseUrl;
