@@ -27,6 +27,6 @@ export async function GET(request: Request) {
     );
     return jsonOk(data, 200);
   } catch (e) {
-    return catchApiError(e);
+    return catchApiError(e, { request, context: "boats.search" });
   }
 }

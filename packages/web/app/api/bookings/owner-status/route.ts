@@ -42,6 +42,6 @@ export async function PATCH(request: Request) {
     );
     return jsonOk(data, 200);
   } catch (e) {
-    return catchApiError(e);
+    return catchApiError(e, { request, context: "bookings.owner-status" });
   }
 }

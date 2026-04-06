@@ -24,6 +24,6 @@ export async function POST(request: Request) {
     );
     return jsonOk(data, 200);
   } catch (e) {
-    return catchApiError(e);
+    return catchApiError(e, { request, context: "translate.post" });
   }
 }

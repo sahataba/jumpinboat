@@ -21,6 +21,10 @@ export async function GET(request: Request) {
         );
         const user = yield* authService.getCurrentUser(token);
         return { user };
-      }),); return jsonOk(data, 200);
-  } catch (e) { return catchApiError(e); }
+      }),
+    );
+    return jsonOk(data, 200);
+  } catch (e) {
+    return catchApiError(e, { request, context: "auth.me" });
+  }
 }

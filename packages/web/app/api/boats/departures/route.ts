@@ -9,7 +9,10 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const boatId = url.searchParams.get("boatId");
     if (!boatId) {
-      return catchApiError(new ApiError(400, "boatId query parameter is required"));
+      return catchApiError(new ApiError(400, "boatId query parameter is required"), {
+        request,
+        context: "boats.departures",
+      });
     }
     const items = await listDeparturesForBoat(boatId);
     return jsonOk(
@@ -22,6 +25,9 @@ export async function GET(request: Request) {
       200,
     );
   } catch (e) {
-    return catchApiError(e instanceof Error ? e : new ApiError(500, String(e)));
+    return catchApiError(e instanceof Error ? e : new ApiError(500, String(e)), {
+      request,
+      context: "boats.departures",
+    });
   }
 }

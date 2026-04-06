@@ -36,6 +36,6 @@ export async function POST(request: Request) {
     );
     return jsonOk(data, 201);
   } catch (e) {
-    return catchApiError(e);
+    return catchApiError(e, { request, context: "bookings.create" });
   }
 }

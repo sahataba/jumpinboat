@@ -12,4 +12,4 @@ export const getErrorStatusCode = (error: unknown, fallback = 500) =>
   error instanceof ApiError ? error.statusCode : fallback;
 
 export const getErrorMessage = (error: unknown, fallback: string) =>
-  error instanceof Error ? error.message : fallback;
+  error instanceof ApiError ? error.message : fallback;
