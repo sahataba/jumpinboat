@@ -9,3 +9,4 @@ packages/mobile/.expo/
 .env.*
 **/.env
 **/.env.*
+.vercel
