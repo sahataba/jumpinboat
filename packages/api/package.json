@@ -18,6 +18,7 @@
     "lint": "tsc --noEmit",
     "db:generate": "node --env-file=.env ../../node_modules/drizzle-kit/bin.cjs generate --config=drizzle.config.ts",
     "db:migrate": "node --env-file=.env --import tsx src/db/migrate.ts",
+    "db:migrate:deploy": "node --import tsx src/db/migrate.ts",
     "db:seed": "node --env-file=.env --import tsx src/db/seed.ts"
   },
   "dependencies": {
