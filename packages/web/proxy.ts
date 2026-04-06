@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 import { corsHeaders } from "./lib/cors-headers";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith("/api/") && request.method === "OPTIONS") {
     return new NextResponse(null, { status: 204, headers: corsHeaders });
   }

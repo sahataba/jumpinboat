@@ -42,6 +42,13 @@ mergeSiblingApiEnv();
 /** @type {import("next").NextConfig} */
 // HTTP API is implemented as App Router Route Handlers; `@jumpinboat/api` provides services + DB.
 const nextConfig = {
+  // Vercel deploys this app from `packages/web`, but the traced server runtime also needs
+  // sibling workspace outputs that live under `packages/api` and `packages/shared`.
+  outputFileTracingRoot: path.join(__dirname, "../.."),
+  outputFileTracingIncludes: {
+    "/api/*": ["../api/dist/**/*", "../shared/dist/**/*"],
+    "/*": ["../shared/dist/**/*"],
+  },
   serverExternalPackages: ["argon2", "pg", "@neondatabase/serverless", "@jumpinboat/api"],
 };
 
