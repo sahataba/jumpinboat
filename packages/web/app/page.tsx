@@ -135,6 +135,12 @@ export default function HomePage() {
                 >
                   Owner inbox
                 </Link>
+                <Link
+                  href="/owner/listings"
+                  className="inline-flex items-center rounded-full border border-slate-200 bg-white/85 px-5 py-3 text-sm font-medium text-slate-900"
+                >
+                  Manage listings
+                </Link>
               </div>
             </div>
           </div>

@@ -7,12 +7,14 @@ import {
 } from "./observability/telemetry.js";
 import { AuthServiceLive } from "./services/auth-service.js";
 import { BookingServiceLive } from "./services/booking-service.js";
+import { OwnerListingServiceLive } from "./services/owner-listing-service.js";
 import { PublicBoatsService } from "./services/public-boats-service.js";
 
 /** Effect service stack for Next.js Route Handlers (`runApiEffect`). */
 export const ApiRuntimeLayer = Layer.mergeAll(
   AuthServiceLive,
   BookingServiceLive,
+  OwnerListingServiceLive,
   PublicBoatsService.Live,
   Logger.json,
   Logger.minimumLogLevel(

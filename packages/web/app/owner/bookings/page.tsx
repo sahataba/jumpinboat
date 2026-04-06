@@ -71,6 +71,9 @@ export default function OwnerBookingsPage() {
         <Link href="/" className="text-sm text-teal-700 underline">
           ← Discovery
         </Link>
+        <Link href="/owner/listings" className="text-sm text-amber-700 underline">
+          Manage listings
+        </Link>
         <h1 className="text-3xl font-semibold">Owner booking inbox</h1>
         <p className="text-sm text-slate-600">
           New requests appear here. Email notifications are coming soon—you’ll see requests in this inbox for

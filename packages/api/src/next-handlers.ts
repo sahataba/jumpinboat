@@ -5,5 +5,5 @@ export { requireBearerToken } from "./http/response.js";
 export { runApiEffect } from "./next-runtime.js";
 export { AuthService } from "./services/auth-service.js";
 export { BookingService } from "./services/booking-service.js";
+export { OwnerListingService } from "./services/owner-listing-service.js";
 export { PublicBoatsService } from "./services/public-boats-service.js";
-
