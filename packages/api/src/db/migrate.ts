@@ -8,6 +8,37 @@ import * as schema from "./schema.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+const toErrorDetails = (error: unknown) => {
+  if (!(error instanceof Error)) {
+    return { error };
+  }
+
+  const wrappedError = error as Error & {
+    query?: string;
+    params?: unknown[];
+    cause?: unknown;
+  };
+
+  const cause =
+    wrappedError.cause instanceof Error
+      ? {
+          name: wrappedError.cause.name,
+          message: wrappedError.cause.message,
+          stack: wrappedError.cause.stack,
+          ...((wrappedError.cause as unknown) as Record<string, unknown>),
+        }
+      : wrappedError.cause;
+
+  return {
+    name: wrappedError.name,
+    message: wrappedError.message,
+    stack: wrappedError.stack,
+    ...(wrappedError.query ? { query: wrappedError.query } : {}),
+    ...(wrappedError.params ? { params: wrappedError.params } : {}),
+    ...(cause ? { cause } : {}),
+  };
+};
+
 async function main() {
   const connectionString = process.env.DATABASE_URL_MIGRATE ?? process.env.DATABASE_URL;
   if (!connectionString) {
@@ -20,6 +51,7 @@ async function main() {
   try {
     await migrate(db, {
       migrationsFolder: resolve(__dirname, "../../drizzle"),
+      migrationsSchema: "public",
     });
   } finally {
     await pool.end();
@@ -27,6 +59,6 @@ async function main() {
 }
 
 main().catch(async (error) => {
-  console.error("Failed to run migrations", error);
+  console.error("Failed to run migrations", toErrorDetails(error));
   process.exit(1);
 });
