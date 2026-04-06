@@ -6,6 +6,7 @@ import {
   runApiEffect,
 } from "@jumpinboat/api/next-handlers";
 
+import { getApiRequestTelemetryContext } from "../../../../lib/api-request-telemetry";
 import { catchApiError, jsonOk } from "../../../../lib/api-http";
 
 export const runtime = "nodejs";
@@ -24,6 +25,7 @@ export async function GET(request: Request) {
         );
         return { items };
       }),
+      getApiRequestTelemetryContext(request, "boats.search"),
     );
     return jsonOk(data, 200);
   } catch (e) {

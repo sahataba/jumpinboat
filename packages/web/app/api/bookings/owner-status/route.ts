@@ -8,6 +8,7 @@ import {
   runApiEffect,
 } from "@jumpinboat/api/next-handlers";
 
+import { getApiRequestTelemetryContext } from "../../../../lib/api-request-telemetry";
 import { catchApiError, jsonOk } from "../../../../lib/api-http";
 
 export const runtime = "nodejs";
@@ -39,6 +40,7 @@ export async function PATCH(request: Request) {
         yield* bookingService.setBookingStatus(user.id, body.bookingId, body.status);
         return { ok: true as const };
       }),
+      getApiRequestTelemetryContext(request, "bookings.owner-status"),
     );
     return jsonOk(data, 200);
   } catch (e) {

@@ -8,6 +8,7 @@ import {
   runApiEffect,
 } from "@jumpinboat/api/next-handlers";
 
+import { getApiRequestTelemetryContext } from "../../../lib/api-request-telemetry";
 import { catchApiError, jsonOk } from "../../../lib/api-http";
 
 export const runtime = "nodejs";
@@ -33,6 +34,7 @@ export async function POST(request: Request) {
         const booking = yield* bookingService.createBooking(user.id, payload);
         return { booking };
       }),
+      getApiRequestTelemetryContext(request, "bookings.create"),
     );
     return jsonOk(data, 201);
   } catch (e) {

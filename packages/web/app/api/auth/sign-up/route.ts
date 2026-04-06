@@ -6,6 +6,7 @@ import {
   runApiEffect,
 } from "@jumpinboat/api/next-handlers";
 
+import { getApiRequestTelemetryContext } from "../../../../lib/api-request-telemetry";
 import { catchApiError, jsonOk } from "../../../../lib/api-http";
 
 export const runtime = "nodejs";
@@ -23,6 +24,7 @@ export async function POST(request: Request) {
         const authResponse = yield* authService.signUp(payload);
         return authResponse;
       }),
+      getApiRequestTelemetryContext(request, "auth.sign-up"),
     );
     return jsonOk(data, 201);
   } catch (e) {

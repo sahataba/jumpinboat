@@ -9,10 +9,11 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@jumpinboat/api": "*",
     "@effect-atom/atom-react": "^0.5.0",
     "@effect/schema": "^0.75.5",
+    "@jumpinboat/api": "*",
     "@jumpinboat/shared": "*",
+    "@vercel/otel": "^1.14.0",
     "effect": "^3.19.19",
     "leaflet": "^1.9.4",
     "next": "^16.1.6",

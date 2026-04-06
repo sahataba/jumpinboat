@@ -30,6 +30,35 @@ const isEmail = (value: string): boolean => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(va
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
+const logUnexpectedAuthError = (context: string, error: unknown) => {
+  if (error instanceof ApiError) {
+    return;
+  }
+
+  const dbLikeError =
+    typeof error === "object" && error !== null
+      ? {
+          code: "code" in error ? String(error.code) : undefined,
+          detail: "detail" in error ? String(error.detail) : undefined,
+          table: "table" in error ? String(error.table) : undefined,
+          column: "column" in error ? String(error.column) : undefined,
+          constraint: "constraint" in error ? String(error.constraint) : undefined,
+        }
+      : undefined;
+
+  console.error(`[auth:${context}] unexpected error`, {
+    error:
+      error instanceof Error
+        ? {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+          }
+        : String(error),
+    db: dbLikeError,
+  });
+};
+
 const parseSignUpRequest = (body: unknown): Effect.Effect<SignUpRequest, ApiError> =>
   Effect.try({
     try: () => {
@@ -154,8 +183,10 @@ const signUp = (input: SignUpRequest) => {
         canListBoats,
       });
     },
-    catch: (error) =>
-      error instanceof ApiError ? error : new ApiError(500, "Could not create account"),
+    catch: (error) => {
+      logUnexpectedAuthError("sign-up", error);
+      return error instanceof ApiError ? error : new ApiError(500, "Could not create account");
+    },
   }).pipe(Effect.flatMap(toAuthResponse));
 };
 
@@ -184,8 +215,10 @@ const signIn = (input: SignInRequest) => {
         canListBoats: userRecord.canListBoats,
       } satisfies User;
     },
-    catch: (error) =>
-      error instanceof ApiError ? error : new ApiError(500, "Could not verify credentials"),
+    catch: (error) => {
+      logUnexpectedAuthError("sign-in", error);
+      return error instanceof ApiError ? error : new ApiError(500, "Could not verify credentials");
+    },
   }).pipe(Effect.flatMap(toAuthResponse));
 };
 
@@ -214,8 +247,10 @@ const getCurrentUser = (token: string) =>
 
       return user;
     },
-    catch: (error) =>
-      error instanceof ApiError ? error : new ApiError(401, "Invalid or expired token"),
+    catch: (error) => {
+      logUnexpectedAuthError("get-current-user", error);
+      return error instanceof ApiError ? error : new ApiError(401, "Invalid or expired token");
+    },
   });
 
 export interface AuthServiceShape {
