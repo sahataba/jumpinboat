@@ -1,5 +1,5 @@
 import { NodeContext } from "@effect/platform-node";
-import { Effect, Layer, LogLevel, Logger } from "effect";
+import { Cause, Effect, Exit, Layer, LogLevel, Logger, Option } from "effect";
 
 import {
   type ApiRequestTelemetryContext,
@@ -26,9 +26,17 @@ export const runApiEffect = <A, E>(
   effect: Effect.Effect<A, E, never>,
   telemetryContext?: ApiRequestTelemetryContext,
 ): Promise<A> =>
-  Effect.runPromise(
+  Effect.runPromiseExit(
     Effect.provide(
       telemetryContext ? withRequestTelemetry(effect, telemetryContext) : effect,
       ApiRuntimeLayer,
     ),
+  ).then((exit) =>
+    Exit.match(exit, {
+      onFailure: (cause) => {
+        const failure = Option.getOrUndefined(Cause.failureOption(cause));
+        throw failure ?? Cause.squash(cause);
+      },
+      onSuccess: (value) => value,
+    }),
   );
