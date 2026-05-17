@@ -105,6 +105,14 @@ export default function HomeScreen() {
         <Text style={styles.heroBody}>
           Choose the available trip, see where it goes, and send a request to the captain.
         </Text>
+        <View style={styles.navRow}>
+          <Pressable onPress={() => router.push("/auth")} style={styles.navButton}>
+            <Text style={styles.navButtonText}>Account</Text>
+          </Pressable>
+          <Pressable onPress={() => router.push("/bookings")} style={styles.navButton}>
+            <Text style={styles.navButtonText}>My bookings</Text>
+          </Pressable>
+        </View>
       </View>
 
       <View style={styles.panel}>
@@ -364,6 +372,24 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
     lineHeight: 22,
+  },
+  navButton: {
+    borderColor: jb.tealSoftBorder,
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+  },
+  navButtonText: {
+    color: jb.teal700,
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  navRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginTop: 4,
   },
   panel: {
     backgroundColor: jb.panel,
