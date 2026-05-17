@@ -299,6 +299,41 @@ const setBookingStatus = (
     catch: (e) => (e instanceof ApiError ? e : new ApiError(500, String(e))),
   });
 
+const cancelBooking = (customerId: string, bookingId: string) =>
+  Effect.tryPromise({
+    try: async () => {
+      const [row] = await getDb()
+        .select()
+        .from(bookings)
+        .where(and(eq(bookings.id, bookingId), eq(bookings.customerId, customerId)))
+        .limit(1);
+
+      if (!row) {
+        throw new ApiError(404, "Booking not found");
+      }
+
+      if (row.status === "cancelled") {
+        return { ok: true as const };
+      }
+
+      if (row.status !== "pending" && row.status !== "confirmed") {
+        throw new ApiError(409, "Only pending or confirmed bookings can be cancelled");
+      }
+
+      await getDb()
+        .update(bookings)
+        .set({ status: "cancelled", updatedAt: new Date() })
+        .where(and(eq(bookings.id, bookingId), eq(bookings.customerId, customerId)));
+
+      console.log(
+        `[notify:stub] Booking ${bookingId} cancelled by customer — email/WhatsApp to owner would fire here.`,
+      );
+
+      return { ok: true as const };
+    },
+    catch: (e) => (e instanceof ApiError ? e : new ApiError(500, String(e))),
+  });
+
 export interface BookingServiceShape {
   readonly parseCreateBody: (body: unknown) => Effect.Effect<CreateBookingRequest, ApiError>;
   readonly createBooking: (
@@ -316,6 +351,10 @@ export interface BookingServiceShape {
     ownerId: string,
     bookingId: string,
     status: "confirmed" | "declined",
+  ) => Effect.Effect<{ ok: true }, ApiError>;
+  readonly cancelBooking: (
+    customerId: string,
+    bookingId: string,
   ) => Effect.Effect<{ ok: true }, ApiError>;
 }
 
@@ -361,5 +400,6 @@ export const BookingServiceLive = Layer.succeed(
     listMine,
     listOwnerIncoming,
     setBookingStatus,
+    cancelBooking,
   }),
 );
