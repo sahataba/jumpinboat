@@ -110,7 +110,7 @@ export default function HomePage() {
             </p>
             <div className="space-y-4">
               <h1 className="max-w-4xl text-5xl font-semibold leading-tight tracking-[-0.04em] text-slate-950 md:text-6xl">
-                Licensed skipper-led boat transport — book routes on the map.
+                Licensed skipper-led boat transport.
               </h1>
               <p className="max-w-2xl text-base leading-7 text-slate-600 md:text-lg">
                 Browse licensed skippers, see routes on the map, and pay on arrival. Listings are available
