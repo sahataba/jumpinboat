@@ -24,7 +24,7 @@ export async function PATCH(request: Request) {
         );
         const user = yield* authService.getCurrentUser(token);
         if (!user.canListBoats) {
-          return yield* Effect.fail(new ApiError(403, "Account cannot manage listings"));
+          return yield* Effect.fail(new ApiError(403, "Account cannot add boat trips"));
         }
         const raw = yield* Effect.tryPromise({
           try: () => request.json() as Promise<unknown>,
@@ -32,10 +32,10 @@ export async function PATCH(request: Request) {
         });
         const body = raw as { bookingId?: string; status?: string };
         if (typeof body.bookingId !== "string" || body.bookingId.length === 0) {
-          return yield* Effect.fail(new ApiError(422, "bookingId is required"));
+          return yield* Effect.fail(new ApiError(422, "Choose a request to update"));
         }
         if (body.status !== "confirmed" && body.status !== "declined") {
-          return yield* Effect.fail(new ApiError(422, "status must be confirmed or declined"));
+          return yield* Effect.fail(new ApiError(422, "Choose accept or decline"));
         }
         yield* bookingService.setBookingStatus(user.id, body.bookingId, body.status);
         return { ok: true as const };

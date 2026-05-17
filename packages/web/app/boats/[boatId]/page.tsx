@@ -122,7 +122,7 @@ export default function BoatDetailPage() {
       <main className="jb-page p-8">
         <p className="text-rose-600">{error ?? "Not found"}</p>
         <Link href="/" className="mt-4 inline-block text-teal-700 underline">
-          Back to listings
+          Back to trips
         </Link>
       </main>
     );
@@ -132,30 +132,30 @@ export default function BoatDetailPage() {
     <main className="jb-page">
       <div className="jb-section-detail">
         <Link href="/" className="text-sm font-medium text-teal-800 underline">
-          ← All listings
+          ← All trips
         </Link>
 
         <header className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-teal-700">
-            Licensed captain · scheduled departures
+            Captain included
           </p>
           <h1 className="text-4xl font-semibold tracking-tight">{boat.translation.name}</h1>
           <p className="text-slate-600">{boat.translation.description}</p>
           <p className="text-sm text-slate-500">
-            {boat.translation.startLocationLabel} → {boat.translation.endLocationLabel} ·{" "}
-            {boat.freePassengers ?? 0} seats free (of {boat.capacity.maxPassengers}) · Weather
-            cancellation risk ~{boat.weatherRiskPercent ?? 0}%
+            {boat.translation.startLocationLabel} to {boat.translation.endLocationLabel} ·{" "}
+            {boat.freePassengers ?? 0} seats open out of {boat.capacity.maxPassengers} · Weather
+            checked before departure
           </p>
         </header>
 
         <BoatRouteMap boat={boat} />
 
         <section className="rounded-[28px] border border-slate-200 bg-white/90 p-6 shadow-sm">
-          <h2 className="text-lg font-semibold">Book a departure</h2>
+          <h2 className="text-lg font-semibold">Request this trip</h2>
           <p className="mt-1 text-sm text-slate-500">Pay on arrival only. Captain included.</p>
 
           <label className="mt-4 block text-sm font-medium">
-            Departure
+            Choose a time
             <select
               value={departureId}
               onChange={(e) => setDepartureId(e.target.value)}
@@ -186,7 +186,7 @@ export default function BoatDetailPage() {
 
           {boat.route.stops.length > 0 ? (
             <div className="mt-4">
-              <p className="text-sm font-medium">Optional intermediate stops (adds per-stop price)</p>
+              <p className="text-sm font-medium">Add a stop along the way</p>
               <ul className="mt-2 space-y-2">
                 {boat.route.stops.map((s) => (
                   <li key={s.id}>
@@ -210,7 +210,7 @@ export default function BoatDetailPage() {
           {boat.offersCargo ? (
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <label className="block text-sm font-medium">
-                Est. cargo kg
+                About how heavy?
                 <input
                   type="number"
                   min={0}
@@ -220,7 +220,7 @@ export default function BoatDetailPage() {
                 />
               </label>
               <label className="block text-sm font-medium">
-                Est. packages
+                How many bags or boxes?
                 <input
                   type="number"
                   min={0}

@@ -1,7 +1,7 @@
 import { Cause } from "effect";
 
 const LISTINGS_LOAD_MESSAGE =
-  "We couldn't load listings. Check your connection and try again.";
+  "We couldn't load trips. Check your connection and try again.";
 
 /** Safe message for UI; logs full cause in development only. */
 export function userFacingListLoadError(cause: Cause.Cause<unknown>): string {

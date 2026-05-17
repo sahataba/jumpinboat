@@ -15,6 +15,13 @@
       "when": 1774000000000,
       "tag": "0001_mvp_user_boat_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778976000000,
+      "tag": "0002_single_public_demo_boat",
+      "breakpoints": true
     }
   ]
 }

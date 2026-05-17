@@ -29,7 +29,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         );
         const user = yield* authService.getCurrentUser(token);
         if (!user.canListBoats) {
-          return yield* Effect.fail(new ApiError(403, "Account cannot manage listings"));
+          return yield* Effect.fail(new ApiError(403, "Account cannot add boat trips"));
         }
         return yield* ownerListingService.getOwnerListing(user.id, boatId);
       }),
@@ -53,7 +53,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
         );
         const user = yield* authService.getCurrentUser(token);
         if (!user.canListBoats) {
-          return yield* Effect.fail(new ApiError(403, "Account cannot manage listings"));
+          return yield* Effect.fail(new ApiError(403, "Account cannot add boat trips"));
         }
         const raw = yield* Effect.tryPromise({
           try: () => request.json() as Promise<unknown>,

@@ -20,22 +20,24 @@ import {
 const formatRouteSummary = (boat: BoatListingSummary) => {
   const start = boat.translation.startLocationLabel ?? "Departure";
   const end = boat.translation.endLocationLabel ?? "Arrival";
-  return `${start} -> ${end}`;
+  return `${start} to ${end}`;
 };
 
 const formatPricingSummary = (boat: BoatListingSummary) => {
   const currency = boat.route.pricing.basePricePerTrip.currency;
-  const base = `${boat.route.pricing.basePricePerTrip.amount} ${currency}/trip`;
+  const base = `${boat.route.pricing.basePricePerTrip.amount} ${currency} for the trip`;
 
   if (!boat.route.pricing.hasUniformPerStopPricing) {
     const prices = boat.route.stops
       .map((stop) => stop.perStopPrice?.amount)
       .filter((price): price is number => typeof price === "number");
 
-    return prices.length > 0 ? `${base} + from ${Math.min(...prices)} ${currency}/stop` : base;
+    return prices.length > 0
+      ? `${base} + from ${Math.min(...prices)} ${currency} for an extra stop`
+      : base;
   }
 
-  return `${base} + ${boat.route.pricing.uniformPricePerStop?.amount ?? 0} ${currency}/stop`;
+  return `${base} + ${boat.route.pricing.uniformPricePerStop?.amount ?? 0} ${currency} for an extra stop`;
 };
 
 const BoatCard = ({
@@ -48,12 +50,12 @@ const BoatCard = ({
   <Pressable onPress={onOpen} style={styles.card}>
     <View style={styles.cardHeader}>
       <View style={styles.cardHeaderCopy}>
-        <Text style={styles.eyebrow}>Public route</Text>
+        <Text style={styles.eyebrow}>Boat trip</Text>
         <Text style={styles.cardTitle}>{boat.translation.name}</Text>
         <Text style={styles.cardDescription}>{boat.translation.description}</Text>
       </View>
       <View style={styles.riskBadge}>
-        <Text style={styles.riskBadgeText}>{boat.weatherRiskPercent ?? 0}% risk</Text>
+        <Text style={styles.riskBadgeText}>Weather checked</Text>
       </View>
     </View>
 
@@ -70,15 +72,15 @@ const BoatCard = ({
       <View style={styles.metricBox}>
         <Text style={styles.metricLabel}>Capacity</Text>
         <Text style={styles.metricValue}>{boat.capacity.maxPassengers} passengers</Text>
-        <Text style={styles.metricHint}>{boat.capacity.maxTotalLoadKg} kg legal load</Text>
+        <Text style={styles.metricHint}>Room for people and bags</Text>
       </View>
       <View style={styles.metricBox}>
-        <Text style={styles.metricLabel}>Availability</Text>
+        <Text style={styles.metricLabel}>Open seats</Text>
         <Text style={styles.metricValue}>{boat.freePassengers ?? boat.capacity.maxPassengers} seats open</Text>
         <Text style={styles.metricHint}>
           {boat.offersCargo
-            ? `${boat.capacity.maxCargoWeightKg ?? 0} kg cargo support`
-            : "Passenger transfer only"}
+            ? "Bags and supplies welcome"
+            : "Passengers only"}
         </Text>
       </View>
     </View>
@@ -98,18 +100,18 @@ export default function HomeScreen() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.hero}>
-        <Text style={styles.eyebrow}>JumpInBoat discovery</Text>
-        <Text style={styles.heroTitle}>Licensed skipper-led routes near you</Text>
+        <Text style={styles.eyebrow}>Find a boat</Text>
+        <Text style={styles.heroTitle}>Book a local boat ride</Text>
         <Text style={styles.heroBody}>
-          Browse listings shared with our website. Tap a card for route details and next steps.
+          Choose the available trip, see where it goes, and send a request to the captain.
         </Text>
       </View>
 
       <View style={styles.panel}>
-        <Text style={styles.panelTitle}>Filters</Text>
+        <Text style={styles.panelTitle}>Find a trip</Text>
         <TextInput
           style={styles.input}
-          placeholder="Search route, town, cargo..."
+          placeholder="Search town, trip, or supplies..."
           placeholderTextColor="#6b7280"
           value={filters.query}
           onChangeText={(value) =>
@@ -122,8 +124,8 @@ export default function HomeScreen() {
 
         <View style={styles.toggleRow}>
           <View style={styles.toggleCopy}>
-            <Text style={styles.toggleTitle}>Goods transport only</Text>
-            <Text style={styles.toggleBody}>Only show boats that can carry provisions or cargo.</Text>
+            <Text style={styles.toggleTitle}>Bags or supplies</Text>
+            <Text style={styles.toggleBody}>Only show trips that can carry more than passengers.</Text>
           </View>
           <Switch
             value={filters.goodsTransportOnly}
@@ -138,7 +140,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.seatStepper}>
-          <Text style={styles.toggleTitle}>Minimum free spots</Text>
+          <Text style={styles.toggleTitle}>Seats needed</Text>
           <View style={styles.seatActions}>
             {[0, 2, 4, 6].map((count) => (
               <Text
@@ -162,12 +164,14 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.banner}>
-        <Text style={styles.bannerText}>Listings update as captains publish routes.</Text>
-        <Text style={styles.bannerCount}>{activeFilterCount} active</Text>
+        <Text style={styles.bannerText}>Trips update when captains add new times.</Text>
+        <Text style={styles.bannerCount}>
+          {activeFilterCount} choice{activeFilterCount === 1 ? "" : "s"}
+        </Text>
       </View>
 
       {Result.builder(result)
-        .onInitial(() => <Text style={styles.feedback}>Loading public boats...</Text>)
+        .onInitial(() => <Text style={styles.feedback}>Loading boat trips...</Text>)
         .onFailure((cause) => (
           <Text style={[styles.feedback, styles.feedbackError]}>
             {userFacingListLoadError(cause)}
@@ -175,8 +179,10 @@ export default function HomeScreen() {
         ))
         .onSuccess((boats: ReadonlyArray<BoatListingSummary>) => (
           <View style={styles.listSection}>
-            <Text style={styles.listTitle}>{boats.length} public boat options</Text>
-            <Text style={styles.listSubtitle}>Same listings as the JumpInBoat website.</Text>
+            <Text style={styles.listTitle}>
+              {boats.length} public boat option{boats.length === 1 ? "" : "s"}
+            </Text>
+            <Text style={styles.listSubtitle}>Available trips from JumpInBoat captains.</Text>
 
             {boats.length === 0 ? (
               <Text style={styles.feedback}>No boats match these filters right now.</Text>

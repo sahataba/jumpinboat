@@ -24,7 +24,7 @@ export async function GET(request: Request) {
         );
         const user = yield* authService.getCurrentUser(token);
         if (!user.canListBoats) {
-          return yield* Effect.fail(new ApiError(403, "Account cannot manage listings"));
+          return yield* Effect.fail(new ApiError(403, "Account cannot add boat trips"));
         }
         const items = yield* bookingService.listOwnerIncoming(user.id);
         return { items };

@@ -4,6 +4,7 @@ import type { Booking } from "@jumpinboat/shared";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
+import { formatBookingStatus } from "../../lib/booking-format";
 import { readPersistedAuthSession } from "../../lib/auth";
 
 export default function MyBookingsPage() {
@@ -90,13 +91,15 @@ export default function MyBookingsPage() {
             return (
               <li key={b.id} className="jb-card">
                 <p className="font-medium">
-                  {b.status} · {b.passengerCount}{" "}
+                  {formatBookingStatus(b.status)} · {b.passengerCount}{" "}
                   {b.passengerCount === 1 ? "passenger" : "passengers"}
                 </p>
                 <p className="text-sm text-slate-600">
                   Total {b.price.totalPrice.amount} {b.price.totalPrice.currency} · pay on arrival
                 </p>
-                <p className="text-xs text-slate-400">{b.createdAt}</p>
+                <p className="text-xs text-slate-400">
+                  Requested {new Date(b.createdAt).toLocaleString()}
+                </p>
                 {canCancel ? (
                   <button
                     type="button"

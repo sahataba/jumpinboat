@@ -13,7 +13,7 @@ import {
 } from "../../lib/auth";
 
 const emptyFeedback =
-  "Create an account to list boats and manage booking requests, or sign in to continue.";
+  "Create an account to book trips, add your boat, or sign in to continue.";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<AuthMode>("sign-up");
@@ -32,7 +32,7 @@ export default function AuthPage() {
   }, []);
 
   const submitLabel = useMemo(
-    () => (mode === "sign-up" ? "Create owner account" : "Sign in"),
+    () => (mode === "sign-up" ? "Create account" : "Sign in"),
     [mode],
   );
 
@@ -84,23 +84,23 @@ export default function AuthPage() {
 
           <div className="space-y-4">
             <p className="text-sm font-semibold uppercase tracking-[0.34em] text-teal-800">
-              Owner access
+              Boat owner access
             </p>
             <h1 className="max-w-xl text-5xl font-semibold tracking-[-0.04em] text-slate-950 md:text-6xl">
-              Manage your listings and booking requests
+              Manage your boat trips
             </h1>
             <p className="max-w-xl text-base leading-7 text-slate-600 md:text-lg">
-              Create an account to publish skipper-led routes and respond to travelers. Sign in anytime to
-              pick up where you left off.
+              Create an account to share boat trips and respond to travelers. Sign in anytime to
+              keep things moving.
             </p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-[28px] border border-white/80 bg-white/75 p-5 shadow-[0_20px_60px_rgba(71,85,105,0.12)] backdrop-blur">
               <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Who can use this</p>
-              <p className="mt-3 text-lg font-semibold text-slate-950">Boat owners and administrators</p>
+              <p className="mt-3 text-lg font-semibold text-slate-950">Boat captains and team members</p>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                Travelers who only book trips use the same sign-up flow with booking enabled.
+                Travelers can use the same account to request trips.
               </p>
             </div>
             <div className="rounded-[28px] border border-white/80 bg-white/75 p-5 shadow-[0_20px_60px_rgba(71,85,105,0.12)] backdrop-blur">
@@ -161,7 +161,7 @@ export default function AuthPage() {
 
             {mode === "sign-up" ? (
               <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-sm font-medium text-slate-800">Account capabilities</p>
+                <p className="text-sm font-medium text-slate-800">What will you use JumpInBoat for?</p>
                 <label className="flex items-center gap-3 text-sm text-slate-700">
                   <input
                     type="checkbox"
@@ -169,7 +169,7 @@ export default function AuthPage() {
                     onChange={(e) => setCanBook(e.target.checked)}
                     className="h-4 w-4 rounded border-slate-300"
                   />
-                  Book skipper-led transport
+                  Book boat trips
                 </label>
                 <label className="flex items-center gap-3 text-sm text-slate-700">
                   <input
@@ -178,9 +178,9 @@ export default function AuthPage() {
                     onChange={(e) => setCanListBoats(e.target.checked)}
                     className="h-4 w-4 rounded border-slate-300"
                   />
-                  List boats / manage departures
+                  Add my boat trips
                 </label>
-                <p className="text-xs text-slate-500">Choose at least one: book trips or list boats.</p>
+                <p className="text-xs text-slate-500">Choose at least one.</p>
               </div>
             ) : null}
 
@@ -218,17 +218,15 @@ export default function AuthPage() {
             {session ? (
               <div className="mt-4 space-y-2 text-sm text-slate-600">
                 <p>
-                  <span className="font-medium text-slate-900">Email:</span> {session.user.email}
+                  <span className="font-medium text-slate-900">Signed in as:</span>{" "}
+                  {session.user.email}
                 </p>
                 <p>
-                  <span className="font-medium text-slate-900">Role:</span> {session.user.rolePrimary}
-                </p>
-                <p>
-                  <span className="font-medium text-slate-900">Can book:</span>{" "}
+                  <span className="font-medium text-slate-900">Book trips:</span>{" "}
                   {session.user.canBook ? "Yes" : "No"}
                 </p>
                 <p>
-                  <span className="font-medium text-slate-900">Can list boats:</span>{" "}
+                  <span className="font-medium text-slate-900">Add boat trips:</span>{" "}
                   {session.user.canListBoats ? "Yes" : "No"}
                 </p>
               </div>

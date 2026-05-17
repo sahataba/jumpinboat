@@ -4,6 +4,7 @@ import type { Booking } from "@jumpinboat/shared";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
+import { formatBookingStatus } from "../../../lib/booking-format";
 import { readPersistedAuthSession } from "../../../lib/auth";
 
 type Row = { booking: Booking; customerEmail: string; boatId: string };
@@ -58,7 +59,7 @@ export default function OwnerBookingsPage() {
         const j = await r.json().catch(() => ({}));
         throw new Error(j.error ?? r.statusText);
       }
-      setMsg(`Updated to ${status}.`);
+      setMsg(status === "confirmed" ? "Request accepted." : "Request declined.");
       void load();
     } catch (e) {
       setMsg(e instanceof Error ? e.message : "Failed");
@@ -72,12 +73,11 @@ export default function OwnerBookingsPage() {
           ← Discovery
         </Link>
         <Link href="/owner/listings" className="text-sm text-amber-700 underline">
-          Manage listings
+          Manage boat trips
         </Link>
-        <h1 className="text-3xl font-semibold">Owner booking inbox</h1>
+        <h1 className="text-3xl font-semibold">Trip requests</h1>
         <p className="text-sm text-slate-600">
-          New requests appear here. Email notifications are coming soon—you’ll see requests in this inbox for
-          now.
+          New requests appear here. Email notifications are coming soon, so check this page for now.
         </p>
         {err ? <p className="text-rose-600">{err}</p> : null}
         {msg ? <p className="text-teal-800">{msg}</p> : null}
@@ -87,8 +87,9 @@ export default function OwnerBookingsPage() {
             <li key={row.booking.id} className="jb-card">
               <p className="font-medium">{row.customerEmail}</p>
               <p className="text-sm text-slate-600">
-                Booking ref {row.boatId.slice(0, 8)}… · {row.booking.passengerCount}{" "}
-                {row.booking.passengerCount === 1 ? "passenger" : "passengers"} · {row.booking.status}
+                Trip {row.boatId.slice(0, 8)} · {row.booking.passengerCount}{" "}
+                {row.booking.passengerCount === 1 ? "passenger" : "passengers"} ·{" "}
+                {formatBookingStatus(row.booking.status, "captain")}
               </p>
               <p className="text-sm text-slate-600">
                 {row.booking.price.totalPrice.amount} {row.booking.price.totalPrice.currency}

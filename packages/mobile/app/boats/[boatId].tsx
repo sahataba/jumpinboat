@@ -65,11 +65,10 @@ export default function BoatDetailScreen() {
       <Text style={{ fontSize: 28, fontWeight: "700", color: jb.ink }}>{boat.translation.name}</Text>
       <Text style={{ color: jb.muted, lineHeight: 22 }}>{boat.translation.description}</Text>
       <Text style={{ color: jb.muted, fontSize: 13 }}>
-        {boat.translation.startLocationLabel} → {boat.translation.endLocationLabel} · licensed skipper
-        included
+        {boat.translation.startLocationLabel} to {boat.translation.endLocationLabel} · captain included
       </Text>
       <Text style={{ color: jb.teal700, fontSize: 14, lineHeight: 22, marginTop: 4 }}>
-        For the full route map and booking, open this listing on the JumpInBoat website.
+        For the map and booking request, open this trip on the JumpInBoat website.
       </Text>
     </ScrollView>
   );

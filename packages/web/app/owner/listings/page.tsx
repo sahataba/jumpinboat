@@ -100,21 +100,21 @@ const createEmptyFormState = (): ListingFormState => ({
 const formatRouteSummary = (item: Pick<OwnerBoatListingSummary, "route" | "translation">) => {
   const start = item.translation.startLocationLabel || "Departure";
   const end = item.translation.endLocationLabel || "Arrival";
-  return `${start} -> ${end}`;
+  return `${start} to ${end}`;
 };
 
 const formatPricingSummary = (item: Pick<OwnerBoatListingSummary, "route">) => {
   const currency = item.route.pricing.basePricePerTrip.currency;
-  const base = `${item.route.pricing.basePricePerTrip.amount} ${currency} / trip`;
+  const base = `${item.route.pricing.basePricePerTrip.amount} ${currency} for the trip`;
   if (!item.route.pricing.hasUniformPerStopPricing) {
     const custom = item.route.stops
       .map((stop) => stop.perStopPrice?.amount)
       .filter((amount): amount is number => typeof amount === "number");
     return custom.length > 0
-      ? `${base} · custom stop pricing`
+      ? `${base} · different prices by stop`
       : base;
   }
-  return `${base} · ${item.route.pricing.uniformPricePerStop?.amount ?? 0} ${currency} / stop`;
+  return `${base} · ${item.route.pricing.uniformPricePerStop?.amount ?? 0} ${currency} for each stop`;
 };
 
 const readApiError = async (response: Response) => {
@@ -140,7 +140,7 @@ const isoToLocalInput = (value: string) => {
 const localInputToIso = (value: string) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
-    throw new Error("Departure time must be a valid date and time.");
+    throw new Error("Trip time must be a valid date and time.");
   }
   return date.toISOString();
 };
@@ -270,7 +270,7 @@ const formToPayload = (form: ListingFormState): BoatListingPayload => {
       return [];
     }
     if (lat.length === 0 || lng.length === 0) {
-      throw new Error(`Stop ${index + 1} needs both latitude and longitude.`);
+      throw new Error(`Stop ${index + 1} needs both map numbers.`);
     }
     return [
       {
@@ -300,12 +300,12 @@ const formToPayload = (form: ListingFormState): BoatListingPayload => {
         departureTimeUtc: localInputToIso(time),
         maxPassengersOverride: optionalNumber(
           departure.maxPassengersOverride,
-          `Departure ${index + 1} passenger override`,
+          `Trip time ${index + 1} seats`,
           1,
         ),
         maxCargoWeightKgOverride: optionalNumber(
           departure.maxCargoWeightKgOverride,
-          `Departure ${index + 1} cargo override`,
+          `Trip time ${index + 1} supply weight`,
           0,
         ),
         status: departure.status,
@@ -318,12 +318,12 @@ const formToPayload = (form: ListingFormState): BoatListingPayload => {
     translations,
     route: {
       start: {
-        lat: requireNumber(form.startLat, "Start latitude"),
-        lng: requireNumber(form.startLng, "Start longitude"),
+        lat: requireNumber(form.startLat, "Starting point map latitude"),
+        lng: requireNumber(form.startLng, "Starting point map longitude"),
       },
       end: {
-        lat: requireNumber(form.endLat, "End latitude"),
-        lng: requireNumber(form.endLng, "End longitude"),
+        lat: requireNumber(form.endLat, "Destination map latitude"),
+        lng: requireNumber(form.endLng, "Destination map longitude"),
       },
       stops,
       pricing: {
@@ -334,27 +334,27 @@ const formToPayload = (form: ListingFormState): BoatListingPayload => {
         hasUniformPerStopPricing: form.hasUniformPerStopPricing,
         uniformPricePerStop: form.hasUniformPerStopPricing
           ? {
-              amount: requireNumber(form.uniformPricePerStop, "Uniform stop price", 0),
+              amount: requireNumber(form.uniformPricePerStop, "Price for each added stop", 0),
               currency,
             }
           : undefined,
       },
     },
     capacity: {
-      maxPassengers: Math.floor(requireNumber(form.maxPassengers, "Max passengers", 1)),
-      maxTotalLoadKg: Math.floor(requireNumber(form.maxTotalLoadKg, "Max total load", 1)),
+      maxPassengers: Math.floor(requireNumber(form.maxPassengers, "Passenger seats", 1)),
+      maxTotalLoadKg: Math.floor(requireNumber(form.maxTotalLoadKg, "People and bags limit", 1)),
       offersCargo: form.offersCargo,
       maxCargoPackages: form.offersCargo
-        ? optionalNumber(form.maxCargoPackages, "Max cargo packages", 0)
+        ? optionalNumber(form.maxCargoPackages, "Most bags or boxes", 0)
         : undefined,
       maxCargoWeightKg: form.offersCargo
-        ? optionalNumber(form.maxCargoWeightKg, "Max cargo weight", 0)
+        ? optionalNumber(form.maxCargoWeightKg, "Supply weight limit", 0)
         : undefined,
       cargoPricePerKg: form.offersCargo
-        ? optionalNumber(form.cargoPricePerKg, "Cargo price per kg", 0) === undefined
+        ? optionalNumber(form.cargoPricePerKg, "Supply price per kg", 0) === undefined
           ? undefined
           : {
-              amount: optionalNumber(form.cargoPricePerKg, "Cargo price per kg", 0) ?? 0,
+              amount: optionalNumber(form.cargoPricePerKg, "Supply price per kg", 0) ?? 0,
               currency,
             }
         : undefined,
@@ -384,10 +384,10 @@ export default function OwnerListingsPage() {
   const getSession = useCallback(() => {
     const session = readPersistedAuthSession();
     if (!session) {
-      throw new Error("Sign in with an account that can manage listings.");
+      throw new Error("Sign in with an account that can add boat trips.");
     }
     if (!session.user.canListBoats) {
-      throw new Error("This account cannot manage listings.");
+      throw new Error("This account cannot add boat trips.");
     }
     return session;
   }, []);
@@ -418,7 +418,7 @@ export default function OwnerListingsPage() {
         setForm(detailToFormState(record.boat, record.departures));
         setError(null);
       } catch (loadError) {
-        setError(loadError instanceof Error ? loadError.message : "Could not load listing.");
+        setError(loadError instanceof Error ? loadError.message : "Could not load this trip.");
       } finally {
         setLoadingDetail(false);
       }
@@ -457,7 +457,7 @@ export default function OwnerListingsPage() {
           setForm(createEmptyFormState());
         }
       } catch (loadError) {
-        setError(loadError instanceof Error ? loadError.message : "Could not load listings.");
+        setError(loadError instanceof Error ? loadError.message : "Could not load your trips.");
         setItems([]);
       } finally {
         setLoadingList(false);
@@ -501,10 +501,10 @@ export default function OwnerListingsPage() {
       const record = (await response.json()) as OwnerListingRecord;
       setSelectedBoatId(record.boat.id);
       setForm(detailToFormState(record.boat, record.departures));
-      setFeedback(selectedBoatId ? "Listing updated." : "Listing created.");
+      setFeedback(selectedBoatId ? "Trip updated." : "Trip created.");
       await refreshListings(record.boat.id);
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Could not save listing.");
+      setError(saveError instanceof Error ? saveError.message : "Could not save this trip.");
     } finally {
       setSaving(false);
     }
@@ -568,15 +568,15 @@ export default function OwnerListingsPage() {
                 ← Discovery
               </Link>
               <Link href="/owner/bookings" className="text-amber-800 underline">
-                Owner inbox
+                Trip requests
               </Link>
             </div>
             <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">
-              Manage your listings
+              Manage your boat trips
             </h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-              Create a new boat route or update an existing one. This MVP supports full editing for
-              listings without bookings already attached.
+              Create a new trip or update an existing one. Trips can be fully edited until a traveler
+              sends a request.
             </p>
           </div>
           <button
@@ -584,7 +584,7 @@ export default function OwnerListingsPage() {
             onClick={startNewListing}
             className="rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white"
           >
-            New listing
+            New trip
           </button>
         </div>
 
@@ -598,10 +598,10 @@ export default function OwnerListingsPage() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                  My boats
+                  My trips
                 </p>
                 <p className="mt-1 text-sm text-slate-600">
-                  {loadingList ? "Loading listings..." : `${items?.length ?? 0} listings`}
+                  {loadingList ? "Loading trips..." : `${items?.length ?? 0} trips`}
                 </p>
               </div>
               <button
@@ -648,7 +648,7 @@ export default function OwnerListingsPage() {
                         {item.capacity.maxPassengers} passengers
                       </p>
                       <p className="text-xs text-slate-500">
-                        {item.capacity.maxTotalLoadKg} kg total load
+                        Room for people and bags
                       </p>
                     </div>
                     <div className="rounded-2xl bg-slate-50 p-3">
@@ -659,14 +659,14 @@ export default function OwnerListingsPage() {
                     </div>
                   </div>
                   <p className="mt-3 text-xs text-slate-500">
-                    {item.departures.length} scheduled departures · {item.route.stops.length} stops
+                    {item.departures.length} trip times · {item.route.stops.length} stops
                   </p>
                 </button>
               ))}
 
               {!loadingList && (items?.length ?? 0) === 0 ? (
                 <div className="rounded-[24px] border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-600">
-                  No listings yet. Start with your first route on the right.
+                  No trips yet. Start with your first trip on the right.
                 </div>
               ) : null}
             </div>
@@ -676,13 +676,13 @@ export default function OwnerListingsPage() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                  {selectedBoatId ? "Edit listing" : "Create listing"}
+                  {selectedBoatId ? "Edit trip" : "Create trip"}
                 </p>
                 <h2 className="mt-1 text-2xl font-semibold text-slate-950">
-                  {selectedBoatId ? "Update route details" : "Set up a new boat route"}
+                  {selectedBoatId ? "Update trip details" : "Set up a new boat trip"}
                 </h2>
               </div>
-              {loadingDetail ? <p className="text-sm text-slate-500">Loading listing...</p> : null}
+              {loadingDetail ? <p className="text-sm text-slate-500">Loading trip...</p> : null}
             </div>
 
             <div className="mt-6 space-y-8">
@@ -709,7 +709,7 @@ export default function OwnerListingsPage() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="block text-sm font-medium text-slate-700">
-                    Listing slug
+                    Short web link
                     <input
                       value={form.slug}
                       onChange={(event) => updateField("slug", event.target.value)}
@@ -723,7 +723,7 @@ export default function OwnerListingsPage() {
                       checked={form.isActive}
                       onChange={(event) => updateField("isActive", event.target.checked)}
                     />
-                    Listing is active and visible in discovery
+                    Show this trip to travelers
                   </label>
                 </div>
 
@@ -758,7 +758,7 @@ export default function OwnerListingsPage() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="block text-sm font-medium text-slate-700">
-                    Start label ({localeTab.toUpperCase()})
+                    Starting point name ({localeTab.toUpperCase()})
                     <input
                       value={form.translations[localeTab].startLocationLabel}
                       onChange={(event) => updateTranslation("startLocationLabel", event.target.value)}
@@ -766,7 +766,7 @@ export default function OwnerListingsPage() {
                     />
                   </label>
                   <label className="block text-sm font-medium text-slate-700">
-                    End label ({localeTab.toUpperCase()})
+                    Destination name ({localeTab.toUpperCase()})
                     <input
                       value={form.translations[localeTab].endLocationLabel}
                       onChange={(event) => updateTranslation("endLocationLabel", event.target.value)}
@@ -776,7 +776,7 @@ export default function OwnerListingsPage() {
                 </div>
 
                 <label className="block text-sm font-medium text-slate-700">
-                  Allowed goods copy ({localeTab.toUpperCase()})
+                  What can riders bring? ({localeTab.toUpperCase()})
                   <textarea
                     value={form.translations[localeTab].allowedGoodsDescription}
                     onChange={(event) =>
@@ -788,7 +788,7 @@ export default function OwnerListingsPage() {
                 </label>
 
                 <label className="block text-sm font-medium text-slate-700">
-                  Photo URLs (one per line)
+                  Website photo links (one per line)
                   <textarea
                     value={form.photosText}
                     onChange={(event) => updateField("photosText", event.target.value)}
@@ -799,11 +799,11 @@ export default function OwnerListingsPage() {
               </section>
 
               <section className="space-y-4 border-t border-slate-200 pt-8">
-                <h3 className="text-lg font-semibold text-slate-950">Route and pricing</h3>
+                <h3 className="text-lg font-semibold text-slate-950">Trip and price</h3>
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="block text-sm font-medium text-slate-700">
-                    Start latitude
+                    Starting point map latitude
                     <input
                       value={form.startLat}
                       onChange={(event) => updateField("startLat", event.target.value)}
@@ -811,7 +811,7 @@ export default function OwnerListingsPage() {
                     />
                   </label>
                   <label className="block text-sm font-medium text-slate-700">
-                    Start longitude
+                    Starting point map longitude
                     <input
                       value={form.startLng}
                       onChange={(event) => updateField("startLng", event.target.value)}
@@ -819,7 +819,7 @@ export default function OwnerListingsPage() {
                     />
                   </label>
                   <label className="block text-sm font-medium text-slate-700">
-                    End latitude
+                    Destination map latitude
                     <input
                       value={form.endLat}
                       onChange={(event) => updateField("endLat", event.target.value)}
@@ -827,7 +827,7 @@ export default function OwnerListingsPage() {
                     />
                   </label>
                   <label className="block text-sm font-medium text-slate-700">
-                    End longitude
+                    Destination map longitude
                     <input
                       value={form.endLng}
                       onChange={(event) => updateField("endLng", event.target.value)}
@@ -838,7 +838,7 @@ export default function OwnerListingsPage() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="block text-sm font-medium text-slate-700">
-                    Base price per trip
+                    Trip price
                     <input
                       value={form.basePricePerTrip}
                       onChange={(event) => updateField("basePricePerTrip", event.target.value)}
@@ -853,13 +853,13 @@ export default function OwnerListingsPage() {
                         updateField("hasUniformPerStopPricing", event.target.checked)
                       }
                     />
-                    Use one shared stop price for all intermediate stops
+                    Use the same price for each added stop
                   </label>
                 </div>
 
                 {form.hasUniformPerStopPricing ? (
                   <label className="block text-sm font-medium text-slate-700">
-                    Uniform stop price
+                    Price for each added stop
                     <input
                       value={form.uniformPricePerStop}
                       onChange={(event) => updateField("uniformPricePerStop", event.target.value)}
@@ -871,9 +871,9 @@ export default function OwnerListingsPage() {
                 <div className="rounded-[28px] border border-slate-200 bg-slate-50/70 p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-slate-950">Intermediate stops</p>
+                      <p className="text-sm font-semibold text-slate-950">Stops along the way</p>
                       <p className="text-xs text-slate-500">
-                        Add optional stop coordinates and price each stop individually if needed.
+                        Add the places you can pick up or drop off, then set a price for each one.
                       </p>
                     </div>
                     <button
@@ -928,13 +928,13 @@ export default function OwnerListingsPage() {
                           <input
                             value={stop.lat}
                             onChange={(event) => updateStop(index, { lat: event.target.value })}
-                            placeholder="Latitude"
+                            placeholder="Map latitude"
                             className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
                           />
                           <input
                             value={stop.lng}
                             onChange={(event) => updateStop(index, { lng: event.target.value })}
-                            placeholder="Longitude"
+                            placeholder="Map longitude"
                             className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
                           />
                           <input
@@ -942,7 +942,7 @@ export default function OwnerListingsPage() {
                             onChange={(event) =>
                               updateStop(index, { perStopPrice: event.target.value })
                             }
-                            placeholder={form.hasUniformPerStopPricing ? "Optional override" : "Stop price"}
+                            placeholder={form.hasUniformPerStopPricing ? "Different price if needed" : "Stop price"}
                             className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
                           />
                         </div>
@@ -953,11 +953,11 @@ export default function OwnerListingsPage() {
               </section>
 
               <section className="space-y-4 border-t border-slate-200 pt-8">
-                <h3 className="text-lg font-semibold text-slate-950">Capacity and cargo</h3>
+                <h3 className="text-lg font-semibold text-slate-950">Seats and supplies</h3>
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="block text-sm font-medium text-slate-700">
-                    Max passengers
+                    Passenger seats
                     <input
                       value={form.maxPassengers}
                       onChange={(event) => updateField("maxPassengers", event.target.value)}
@@ -965,7 +965,7 @@ export default function OwnerListingsPage() {
                     />
                   </label>
                   <label className="block text-sm font-medium text-slate-700">
-                    Max total load (kg)
+                    People and bags limit (kg)
                     <input
                       value={form.maxTotalLoadKg}
                       onChange={(event) => updateField("maxTotalLoadKg", event.target.value)}
@@ -980,13 +980,13 @@ export default function OwnerListingsPage() {
                     checked={form.offersCargo}
                     onChange={(event) => updateField("offersCargo", event.target.checked)}
                   />
-                  Offer cargo or food transport on this route
+                  Carry supplies or food on this trip
                 </label>
 
                 {form.offersCargo ? (
                   <div className="grid gap-4 md:grid-cols-3">
                     <label className="block text-sm font-medium text-slate-700">
-                      Max cargo packages
+                      Most bags or boxes
                       <input
                         value={form.maxCargoPackages}
                         onChange={(event) => updateField("maxCargoPackages", event.target.value)}
@@ -994,7 +994,7 @@ export default function OwnerListingsPage() {
                       />
                     </label>
                     <label className="block text-sm font-medium text-slate-700">
-                      Max cargo weight (kg)
+                      Supply weight limit (kg)
                       <input
                         value={form.maxCargoWeightKg}
                         onChange={(event) => updateField("maxCargoWeightKg", event.target.value)}
@@ -1002,7 +1002,7 @@ export default function OwnerListingsPage() {
                       />
                     </label>
                     <label className="block text-sm font-medium text-slate-700">
-                      Cargo price per kg
+                      Supply price per kg
                       <input
                         value={form.cargoPricePerKg}
                         onChange={(event) => updateField("cargoPricePerKg", event.target.value)}
@@ -1016,9 +1016,9 @@ export default function OwnerListingsPage() {
               <section className="space-y-4 border-t border-slate-200 pt-8">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-950">Departures</h3>
+                    <h3 className="text-lg font-semibold text-slate-950">Trip times</h3>
                     <p className="text-xs text-slate-500">
-                      Add future departures in your local time. They are stored in UTC.
+                      Add future trip times in your local time.
                     </p>
                   </div>
                   <button
@@ -1039,7 +1039,7 @@ export default function OwnerListingsPage() {
                     }
                     className="rounded-full border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700"
                   >
-                    Add departure
+                    Add time
                   </button>
                 </div>
 
@@ -1047,7 +1047,7 @@ export default function OwnerListingsPage() {
                   {form.departures.map((departure, index) => (
                     <div key={`${index}-${departure.departureTimeLocal}`} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                       <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm font-medium text-slate-900">Departure {index + 1}</p>
+                        <p className="text-sm font-medium text-slate-900">Trip time {index + 1}</p>
                         <button
                           type="button"
                           onClick={() =>
@@ -1076,7 +1076,7 @@ export default function OwnerListingsPage() {
                           />
                         </label>
                         <label className="block text-sm font-medium text-slate-700">
-                          Passenger override
+                          Seats for this time
                           <input
                             value={departure.maxPassengersOverride}
                             onChange={(event) =>
@@ -1088,7 +1088,7 @@ export default function OwnerListingsPage() {
                           />
                         </label>
                         <label className="block text-sm font-medium text-slate-700">
-                          Cargo override (kg)
+                          Supply weight for this time (kg)
                           <input
                             value={departure.maxCargoWeightKgOverride}
                             onChange={(event) =>
@@ -1100,7 +1100,7 @@ export default function OwnerListingsPage() {
                           />
                         </label>
                         <label className="block text-sm font-medium text-slate-700">
-                          Status
+                          Trip is
                           <select
                             value={departure.status}
                             onChange={(event) =>
@@ -1110,7 +1110,7 @@ export default function OwnerListingsPage() {
                             }
                             className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm"
                           >
-                            <option value="scheduled">Scheduled</option>
+                            <option value="scheduled">Taking bookings</option>
                             <option value="cancelled">Cancelled</option>
                           </select>
                         </label>
@@ -1122,7 +1122,7 @@ export default function OwnerListingsPage() {
 
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-8">
                 <p className="text-sm text-slate-500">
-                  Save publishes the listing immediately when active is enabled.
+                  When "Show this trip to travelers" is on, travelers can see it after you save.
                 </p>
                 <div className="flex gap-3">
                   <button
@@ -1130,7 +1130,7 @@ export default function OwnerListingsPage() {
                     onClick={startNewListing}
                     className="rounded-full border border-slate-200 px-5 py-3 text-sm font-medium text-slate-700"
                   >
-                    Reset form
+                    Start over
                   </button>
                   <button
                     type="button"
@@ -1138,7 +1138,7 @@ export default function OwnerListingsPage() {
                     disabled={saving}
                     className="rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {saving ? "Saving..." : selectedBoatId ? "Save changes" : "Create listing"}
+                    {saving ? "Saving..." : selectedBoatId ? "Save changes" : "Create trip"}
                   </button>
                 </div>
               </div>
