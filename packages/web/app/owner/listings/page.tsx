@@ -9,6 +9,10 @@ import type {
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
+import {
+  OwnerRouteMapPicker,
+  type RouteCoordinate,
+} from "../../../components/OwnerRouteMapPicker";
 import { readPersistedAuthSession } from "../../../lib/auth";
 
 type TranslationFormState = {
@@ -549,6 +553,29 @@ export default function OwnerListingsPage() {
     });
   };
 
+  const setStartCoordinate = useCallback((coordinate: RouteCoordinate) => {
+    setForm((current) => ({
+      ...current,
+      startLat: coordinate.lat,
+      startLng: coordinate.lng,
+    }));
+  }, []);
+
+  const setEndCoordinate = useCallback((coordinate: RouteCoordinate) => {
+    setForm((current) => ({
+      ...current,
+      endLat: coordinate.lat,
+      endLng: coordinate.lng,
+    }));
+  }, []);
+
+  const addStopCoordinate = useCallback((coordinate: RouteCoordinate) => {
+    setForm((current) => ({
+      ...current,
+      stops: [...current.stops, { ...coordinate, perStopPrice: "" }],
+    }));
+  }, []);
+
   const updateDeparture = (index: number, patch: Partial<DepartureFormState>) => {
     setForm((current) => ({
       ...current,
@@ -800,6 +827,17 @@ export default function OwnerListingsPage() {
 
               <section className="space-y-4 border-t border-slate-200 pt-8">
                 <h3 className="text-lg font-semibold text-slate-950">Trip and price</h3>
+
+                <OwnerRouteMapPicker
+                  endLat={form.endLat}
+                  endLng={form.endLng}
+                  onAddStop={addStopCoordinate}
+                  onSetEnd={setEndCoordinate}
+                  onSetStart={setStartCoordinate}
+                  startLat={form.startLat}
+                  startLng={form.startLng}
+                  stops={form.stops}
+                />
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="block text-sm font-medium text-slate-700">
