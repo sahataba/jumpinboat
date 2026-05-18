@@ -9,6 +9,7 @@ export default function RootLayout() {
         <Stack.Screen name="boats/[boatId]" options={{ title: "Boat" }} />
         <Stack.Screen name="auth" options={{ title: "Account" }} />
         <Stack.Screen name="bookings" options={{ title: "My bookings" }} />
+        <Stack.Screen name="owner/listings" options={{ title: "Owner trips" }} />
       </Stack>
       <StatusBar style="auto" />
     </>

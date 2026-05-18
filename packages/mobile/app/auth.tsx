@@ -211,6 +211,11 @@ export default function AuthScreen() {
               <Pressable onPress={() => router.push("/bookings")} style={styles.textButton}>
                 <Text style={styles.textButtonLabel}>My bookings</Text>
               </Pressable>
+              {session.user.canListBoats ? (
+                <Pressable onPress={() => router.push("/owner/listings")} style={styles.textButton}>
+                  <Text style={styles.textButtonLabel}>Owner trips</Text>
+                </Pressable>
+              ) : null}
               <Pressable onPress={() => router.push("/")} style={styles.textButton}>
                 <Text style={styles.textButtonLabel}>Find trips</Text>
               </Pressable>

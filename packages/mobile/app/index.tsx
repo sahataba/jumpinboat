@@ -1,5 +1,11 @@
 import { Result } from "@effect-atom/atom-react";
+import {
+  type BoatListingSummary,
+  type PublicBoatListFilters,
+  userFacingListLoadError,
+} from "@jumpinboat/shared";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -10,12 +16,8 @@ import {
   View,
 } from "react-native";
 
+import { readPersistedAuthSession } from "../lib/auth";
 import { usePublicBoatFilters, usePublicBoatList } from "../lib/public-boats";
-import {
-  type BoatListingSummary,
-  type PublicBoatListFilters,
-  userFacingListLoadError,
-} from "@jumpinboat/shared";
 
 const formatRouteSummary = (boat: BoatListingSummary) => {
   const start = boat.translation.startLocationLabel ?? "Departure";
@@ -91,11 +93,19 @@ export default function HomeScreen() {
   const router = useRouter();
   const { filters, setFilters } = usePublicBoatFilters();
   const { activeFilterCount, result } = usePublicBoatList();
+  const [canListBoats, setCanListBoats] = useState(false);
   const updateFilters = (
     nextFilters:
       | PublicBoatListFilters
       | ((current: PublicBoatListFilters) => PublicBoatListFilters),
   ) => setFilters(nextFilters);
+
+  useEffect(() => {
+    void (async () => {
+      const session = await readPersistedAuthSession();
+      setCanListBoats(session?.user.canListBoats === true);
+    })();
+  }, []);
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -112,6 +122,11 @@ export default function HomeScreen() {
           <Pressable onPress={() => router.push("/bookings")} style={styles.navButton}>
             <Text style={styles.navButtonText}>My bookings</Text>
           </Pressable>
+          {canListBoats ? (
+            <Pressable onPress={() => router.push("/owner/listings")} style={styles.navButton}>
+              <Text style={styles.navButtonText}>Owner trips</Text>
+            </Pressable>
+          ) : null}
         </View>
       </View>
 
